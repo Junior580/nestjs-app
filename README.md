@@ -28,5 +28,42 @@ Clone the repository to your local machine:
 
 ```bash
 git clone https://github.com/Junior580/nestjs-app
-cd nestjs-app
+cd nestjs-app```
+
+
+### Step 2: Install Dependencies
+
+Install the project dependencies:
+
+```bash
+npm install
+
+```
+### Step 3: Set Up the Database
+To run the database locally with Docker, run the following command:
+
+```bash
+docker-compose up -d
+```
+
+### Step 4: Run Migrations
+If you have migrations to run, use the command:
+
+```bash
+npm run migration:run
+```
+
+### Step 5: Run the Application Locally
+To run the application in development mode:
+
+```bash
+npm run start:dev
+```
+
+### Step 6: Run Tests
+To run the E2E tests, execute:
+
+```bash
+npm run test:e2e
+```
 
