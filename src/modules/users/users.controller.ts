@@ -23,7 +23,7 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
-  ) {}
+  ) { }
 
   @ApiResponse({
     status: 201,
@@ -100,8 +100,8 @@ export class UsersController {
     },
   })
   @ApiResponse({
-    status: 400,
-    description: 'Invalid credentials',
+    status: 401,
+    description: 'Unauthorized',
   })
   @UseGuards(AuthGuard)
   @Get()
@@ -127,8 +127,8 @@ export class UsersController {
     description: 'User not found',
   })
   @ApiResponse({
-    status: 400,
-    description: 'Invalid credentials',
+    status: 401,
+    description: 'Unauthorized',
   })
   @UseGuards(AuthGuard)
   @Get(':id')
@@ -156,8 +156,12 @@ export class UsersController {
     },
   })
   @ApiResponse({
-    status: 400,
-    description: 'Invalid credentials',
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 422,
+    description: 'Request body with invalid data',
   })
   @UseGuards(AuthGuard)
   @HttpCode(204)
@@ -185,8 +189,8 @@ export class UsersController {
     description: 'User not found',
   })
   @ApiResponse({
-    status: 400,
-    description: 'Invalid credentials',
+    status: 401,
+    description: 'Unauthorized',
   })
   @UseGuards(AuthGuard)
   @Delete(':id')
