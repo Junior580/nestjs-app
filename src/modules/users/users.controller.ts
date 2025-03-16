@@ -7,8 +7,6 @@ import {
   Param,
   Delete,
   UseGuards,
-  ClassSerializerInterceptor,
-  UseInterceptors,
   HttpCode,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -52,7 +50,6 @@ export class UsersController {
     status: 422,
     description: 'Request body with invalid data',
   })
-  @UseInterceptors(ClassSerializerInterceptor)
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
@@ -106,7 +103,6 @@ export class UsersController {
     description: 'Invalid credentials',
   })
   @UseGuards(AuthGuard)
-  @UseInterceptors(ClassSerializerInterceptor)
   @Get()
   findAll() {
     return this.usersService.findAll();
@@ -134,7 +130,6 @@ export class UsersController {
     description: 'Invalid credentials',
   })
   @UseGuards(AuthGuard)
-  @UseInterceptors(ClassSerializerInterceptor)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
@@ -164,7 +159,6 @@ export class UsersController {
     description: 'Invalid credentials',
   })
   @UseGuards(AuthGuard)
-  @UseInterceptors(ClassSerializerInterceptor)
   @HttpCode(204)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {

@@ -13,8 +13,9 @@ export const dataSourceOptions: DataSourceOptions = {
   password: configService.getDatabasePassword(),
   database: configService.getDatabaseName(),
   synchronize: false,
+  logging: configService.getNodeEnv() == 'dev' ? true : false,
   entities: [User],
   migrations: [__dirname + '/migrations/*.{ts,js}'],
 };
 
-export const connectionSource = new DataSource(dataSourceOptions);
+export const AppDataSource = new DataSource(dataSourceOptions);
