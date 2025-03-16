@@ -23,22 +23,20 @@ Before running the project, make sure you have the following tools installed:
 ## Project Setup
 
 ### Step 1: Clone the Repository
-
 Clone the repository to your local machine:
 
 ```bash
 git clone https://github.com/Junior580/nestjs-app
-cd nestjs-app```
-
+cd nestjs-app
+```
 
 ### Step 2: Install Dependencies
-
-Install the project dependencies:
+To run the database locally with Docker, run the following command:
 
 ```bash
 npm install
-
 ```
+
 ### Step 3: Set Up the Database
 To run the database locally with Docker, run the following command:
 
