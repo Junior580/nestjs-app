@@ -49,7 +49,7 @@ export class UsersService {
     const user = await this.userRepository.findOneBy({ email });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new BadRequestException('Invalid credentials');
     }
 
     const hashPasswordMatches = await this.hashProvider.compareHash(
@@ -88,13 +88,19 @@ export class UsersService {
         'At least one field must be required for update',
       );
     }
+
     const user = await this.userRepository.findOne({ where: { id } });
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    await this.userRepository.update(id, updateUserDto);
+    await this.userRepository.update(id, {
+      ...updateUserDto,
+      password: updateUserDto.password
+        ? await this.hashProvider.generateHash(updateUserDto.password)
+        : user.id,
+    });
 
     return this.userRepository.findOne({ where: { id } });
   }

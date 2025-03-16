@@ -24,7 +24,11 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      errorHttpStatusCode: 422,
+    }),
+  );
 
   const configService = app.get(EnvConfigService);
 
