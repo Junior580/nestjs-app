@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { BcryptjsHashProvider } from './hash-provider/bcrypt-hash.provider';
+import { SignInDto } from './dto/signin-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -25,7 +26,7 @@ export class UsersService {
     });
 
     if (existingUser) {
-      throw new ConflictException('Email já está em uso');
+      throw new ConflictException('Email is already in use');
     }
 
     const hashPassword = await this.hashProvider.generateHash(
@@ -40,6 +41,27 @@ export class UsersService {
     await this.userRepository.save(newUser);
 
     return newUser;
+  }
+
+  async signIn(signInDto: SignInDto) {
+    const { email, password } = signInDto;
+
+    const user = await this.userRepository.findOneBy({ email });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const hashPasswordMatches = await this.hashProvider.compareHash(
+      password,
+      user.password,
+    );
+
+    if (!hashPasswordMatches) {
+      throw new BadRequestException('Invalid credentials');
+    }
+
+    return user;
   }
 
   async findAll() {
