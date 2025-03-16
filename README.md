@@ -2,6 +2,15 @@
 
 This is a project developed using **NestJS** with support for end-to-end (E2E) testing, continuous integration via **GitHub Actions**, and configuration for running in Docker.
 
+**Licence**
+
+[![NPM](https://img.shields.io/npm/l/express?style=for-the-badge)](https://github.com/Junior580/nestjs-app/blob/main/LICENCE)
+
+**Workflow Status**
+
+[![NPM](https://img.shields.io/github/actions/workflow/status/junior580/barber-backend/coverage.yml?style=for-the-badge)](https://github.com/Junior580/barber-backend/actions)
+
+
 ## Technologies
 
 - **NestJS** - Framework for building efficient, scalable Node.js applications
