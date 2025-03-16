@@ -9,12 +9,14 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
+import { BcryptjsHashProvider } from './hash-provider/bcrypt-hash.provider';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private hashProvider: BcryptjsHashProvider,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -26,7 +28,14 @@ export class UsersService {
       throw new ConflictException('Email já está em uso');
     }
 
-    const newUser = this.userRepository.create(createUserDto);
+    const hashPassword = await this.hashProvider.generateHash(
+      createUserDto.password,
+    );
+
+    const newUser = this.userRepository.create({
+      ...createUserDto,
+      password: hashPassword,
+    });
 
     await this.userRepository.save(newUser);
 
@@ -38,7 +47,13 @@ export class UsersService {
   }
 
   async findOne(id: string) {
-    return this.userRepository.findOne({ where: { id } });
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
@@ -64,11 +79,13 @@ export class UsersService {
 
   async remove(id: string) {
     const user = await this.userRepository.findOne({ where: { id } });
-    if (user) {
-      await this.userRepository.remove(user);
-      return { message: `User #${id} successfully removed` };
-    } else {
+
+    if (!user) {
       throw new NotFoundException('User not found');
     }
+
+    await this.userRepository.remove(user);
+
+    return { message: `User #${id} successfully removed` };
   }
 }
