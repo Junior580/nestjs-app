@@ -8,7 +8,7 @@ This is a project developed using **NestJS** with support for end-to-end (E2E) t
 
 **Workflow Status**
 
-[![NPM](https://img.shields.io/github/actions/workflow/status/junior580/barber-backend/coverage.yml?style=for-the-badge)](https://github.com/Junior580/barber-backend/actions)
+[![NPM](https://img.shields.io/github/actions/workflow/status/junior580/barber-backend/coverage.yml?style=for-the-badge)](https://github.com/Junior580/nestjs-app/actions)
 
 
 ## Technologies
