@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+
 import { EnvConfigService } from '../../shared/env-config/env-config.service';
 
 type GenerateJwtProps = {

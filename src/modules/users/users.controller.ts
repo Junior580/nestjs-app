@@ -1,21 +1,22 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  UseGuards,
+  Get,
   HttpCode,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+
+import { AuthGuard } from '../auth/auth.guard';
+import { AuthService } from '../auth/auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { SignInDto } from './dto/signin-user.dto';
-import { AuthService } from '../auth/auth.service';
-import { AuthGuard } from '../auth/auth.guard';
-import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {

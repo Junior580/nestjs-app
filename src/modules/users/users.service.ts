@@ -4,13 +4,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
+import { CreateUserDto } from './dto/create-user.dto';
+import { SignInDto } from './dto/signin-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { BcryptjsHashProvider } from './hash-provider/bcrypt-hash.provider';
-import { SignInDto } from './dto/signin-user.dto';
 
 @Injectable()
 export class UsersService {

@@ -2,13 +2,14 @@
 /* eslint @typescript-eslint/no-unsafe-member-access: "off" */
 /* eslint @typescript-eslint/no-unsafe-argument: "off" */
 
-import * as request from 'supertest';
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import * as request from 'supertest';
+import { Repository } from 'typeorm';
+
 import { AppModule } from '../src/app.module';
 import { User } from '../src/modules/users/entities/user.entity';
-import { Repository } from 'typeorm';
 import { AppDataSource } from '../src/shared/database/typeorm.config';
 
 describe('UsersController (e2e)', () => {
