@@ -1,0 +1,10 @@
+services:
+  pg:
+    image: postgres:16.6-alpine3.20
+    ports:
+     - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_DB=postgres
+
