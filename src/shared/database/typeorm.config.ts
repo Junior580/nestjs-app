@@ -8,11 +8,7 @@ const configService = new EnvConfigService(new ConfigService());
 
 export const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
-  host: configService.getDatabaseHost(),
-  port: configService.getDatabasePort(),
-  username: configService.getDatabaseUser(),
-  password: configService.getDatabasePassword(),
-  database: configService.getDatabaseName(),
+  url: configService.getDatabaseUrl(),
   synchronize: false,
   logging: configService.getNodeEnv() == 'dev' ? true : false,
   entities: [User],
