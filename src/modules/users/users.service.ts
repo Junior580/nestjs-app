@@ -96,11 +96,21 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
+    if (updateUserDto.email) {
+      const emailExists = await this.userRepository.findOneBy({
+        email: updateUserDto.email,
+      });
+
+      if (emailExists) {
+        throw new ConflictException('Email is already in use');
+      }
+    }
+
     await this.userRepository.update(id, {
       ...updateUserDto,
       password: updateUserDto.password
         ? await this.hashProvider.generateHash(updateUserDto.password)
-        : user.id,
+        : user.password,
     });
 
     return this.userRepository.findOne({ where: { id } });

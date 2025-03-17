@@ -43,10 +43,6 @@ jobs:
           NODE_ENV: test
           PORT: 3000
           JWT_SECRET: 2780d8fc-cd7e-4abc-a4ad-26330cc8a8d7
-          DATABASE_HOST: localhost
-          DATABASE_PORT: 5432
-          DATABASE_USER: postgres
-          DATABASE_PASSWORD: docker
-          DATABASE_NAME: postgres_test
+          DATABASE_URL: postgres://postgres:docker@localhost:5432/postgres_test?schema=public
 
         run: npm run test:e2e
