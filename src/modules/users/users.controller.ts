@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
@@ -14,6 +15,7 @@ import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/auth.guard';
 import { AuthService } from '../auth/auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { ListUserDto } from './dto/list-user.dto';
 import { SignInDto } from './dto/signin-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
@@ -23,7 +25,7 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
-  ) { }
+  ) {}
 
   @ApiResponse({
     status: 201,
@@ -105,8 +107,8 @@ export class UsersController {
   })
   @UseGuards(AuthGuard)
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query() listUserDto: ListUserDto) {
+    return this.usersService.findAll(listUserDto);
   }
 
   @ApiBearerAuth()

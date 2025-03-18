@@ -168,13 +168,31 @@ describe('UsersController (e2e)', () => {
     });
 
     it('/users (GET) -> List Users (Authenticated)', async () => {
+      await request(app.getHttpServer())
+        .post('/users')
+        .send({
+          name: 'list user',
+          email: 'listUserRoute@email.com',
+          password: 'password123',
+        })
+        .expect(201);
+
       const response = await request(app.getHttpServer())
-        .get('/users')
+        .get(
+          '/users?page=0&perPage=2&sort=createdAt&sortDir=ASC&filter=list user',
+        )
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(response.body).toBeInstanceOf(Array);
-      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body.items).toBeInstanceOf(Array);
+      expect(response.body.items[0].name).toBe('list user');
+      expect(response.body.items[0].email).toBe('listUserRoute@email.com');
+      expect(response.body.items.length).toBeGreaterThan(0);
+      expect(response.body.total).toBeDefined();
+      expect(response.body.currentPage).toBe(1);
+      expect(response.body.perPage).toBe(2);
+      expect(response.body.sort).toBe('createdAt');
+      expect(response.body.sortDir).toBe('ASC');
     });
   });
 
