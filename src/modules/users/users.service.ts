@@ -20,7 +20,7 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private hashProvider: BcryptjsHashProvider,
-  ) {}
+  ) { }
 
   async create(createUserDto: CreateUserDto) {
     const existingUser = await this.userRepository.findOne({

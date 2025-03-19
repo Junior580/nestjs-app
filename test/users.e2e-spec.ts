@@ -13,9 +13,9 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import * as request from 'supertest';
 import { Repository } from 'typeorm';
 
-import { AppModule } from '../src/app.module';
-import { User } from '../src/modules/users/entities/user.entity';
-import { AppDataSource } from '../src/shared/infra/database/typeorm.config';
+import { AppModule } from '@/app.module';
+import { User } from '@/modules/users/entities/user.entity';
+import { AppDataSource } from '@/shared/infra/database/typeorm.config';
 
 describe('UsersController (e2e)', () => {
   let app: INestApplication;

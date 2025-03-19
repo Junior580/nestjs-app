@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 
-import { EnvConfigModule } from '../../shared/infra/env-config/env-config.module';
-import { EnvConfigService } from '../../shared/infra/env-config/env-config.service';
+import { EnvConfigModule } from '@/shared/infra/env-config/env-config.module';
+import { EnvConfigService } from '@/shared/infra/env-config/env-config.service';
+
 import { AuthService } from './auth.service';
 
 @Module({
@@ -21,4 +22,4 @@ import { AuthService } from './auth.service';
   providers: [AuthService],
   exports: [AuthService],
 })
-export class AuthModule {}
+export class AuthModule { }
