@@ -15,7 +15,7 @@ import { Repository } from 'typeorm';
 
 import { AppModule } from '../src/app.module';
 import { User } from '../src/modules/users/entities/user.entity';
-import { AppDataSource } from '../src/shared/database/typeorm.config';
+import { AppDataSource } from '../src/shared/infra/database/typeorm.config';
 
 describe('UsersController (e2e)', () => {
   let app: INestApplication;
