@@ -52,8 +52,11 @@ describe('UsersController (e2e)', () => {
 
   afterAll(async () => {
     await AppDataSource.destroy();
-    await userRepository.clear();
     await app.close();
+  });
+
+  beforeEach(async () => {
+    await userRepository.clear();
   });
 
   describe('Create user', () => {
@@ -61,15 +64,15 @@ describe('UsersController (e2e)', () => {
       const response = await request(app.getHttpServer())
         .post('/users')
         .send({
-          name: 'Test User',
-          email: 'test@email.com',
+          name: 'user1',
+          email: 'user1@email.com',
           password: 'password123',
         })
         .expect(201);
 
       expect(response.body).toHaveProperty('id');
-      expect(response.body.name).toBe('Test User');
-      expect(response.body.email).toBe('test@email.com');
+      expect(response.body.name).toBe('user1');
+      expect(response.body.email).toBe('user1@email.com');
 
       testUser = response.body;
     });
@@ -78,8 +81,8 @@ describe('UsersController (e2e)', () => {
       await request(app.getHttpServer())
         .post('/users')
         .send({
-          name: 'Test User',
-          email: 'test1@email.com',
+          name: 'user1',
+          email: 'user1@email.com',
           password: 'password123',
         })
         .expect(201);
@@ -88,7 +91,7 @@ describe('UsersController (e2e)', () => {
         .post('/users')
         .send({
           name: 'Another User',
-          email: 'test1@email.com',
+          email: 'user1@email.com',
           password: 'password123',
         })
         .expect(409);
@@ -112,14 +115,53 @@ describe('UsersController (e2e)', () => {
       expect(response.body.error).toBe('Unprocessable Entity');
       expect(response.body.statusCode).toBe(422);
     });
+
+    it('/users (POST) -> Create user with invalid name', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/users')
+        .send({
+          name: '',
+          email: 'user1@email.com',
+          password: 'password123',
+        })
+        .expect(422);
+
+      expect(response.body.message).toContain('name should not be empty');
+      expect(response.body.error).toBe('Unprocessable Entity');
+      expect(response.body.statusCode).toBe(422);
+    });
+
+    it('/users (POST) -> Create user with invalid password', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/users')
+        .send({
+          name: 'user1',
+          email: 'user1@email.com',
+          password: '',
+        })
+        .expect(422);
+
+      expect(response.body.message).toContain('password should not be empty');
+      expect(response.body.error).toBe('Unprocessable Entity');
+      expect(response.body.statusCode).toBe(422);
+    });
   });
 
   describe('Authenticate user', () => {
     it('/users/signin (POST) -> Authenticate user', async () => {
+      await request(app.getHttpServer())
+        .post('/users')
+        .send({
+          name: 'user1',
+          email: 'user1@email.com',
+          password: 'password123',
+        })
+        .expect(201);
+
       const response = await request(app.getHttpServer())
         .post('/users/signin')
         .send({
-          email: 'test@email.com',
+          email: 'user1@email.com',
           password: 'password123',
         })
         .expect(201);
@@ -171,22 +213,20 @@ describe('UsersController (e2e)', () => {
       await request(app.getHttpServer())
         .post('/users')
         .send({
-          name: 'list user',
-          email: 'listUserRoute@email.com',
+          name: 'user1',
+          email: 'user1@email.com',
           password: 'password123',
         })
         .expect(201);
 
       const response = await request(app.getHttpServer())
-        .get(
-          '/users?page=0&perPage=2&sort=createdAt&sortDir=ASC&filter=list user',
-        )
+        .get('/users?page=0&perPage=2&sort=createdAt&sortDir=ASC&filter=user1')
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
       expect(response.body.items).toBeInstanceOf(Array);
-      expect(response.body.items[0].name).toBe('list user');
-      expect(response.body.items[0].email).toBe('listUserRoute@email.com');
+      expect(response.body.items[0].name).toBe('user1');
+      expect(response.body.items[0].email).toBe('user1@email.com');
       expect(response.body.items.length).toBeGreaterThan(0);
       expect(response.body.total).toBeDefined();
       expect(response.body.currentPage).toBe(1);
@@ -194,18 +234,148 @@ describe('UsersController (e2e)', () => {
       expect(response.body.sort).toBe('createdAt');
       expect(response.body.sortDir).toBe('ASC');
     });
+
+    it('/users (GET) -> List Users Ordered by CreatedAt ASC', async () => {
+      await request(app.getHttpServer())
+        .post('/users')
+        .send({
+          name: 'user1',
+          email: 'user1@email.com',
+          password: 'password123',
+        })
+        .expect(201);
+
+      await new Promise((r) => setTimeout(r, 1000));
+
+      await request(app.getHttpServer())
+        .post('/users')
+        .send({
+          name: 'user2',
+          email: 'user2@email.com',
+          password: 'password123',
+        })
+        .expect(201);
+
+      const response = await request(app.getHttpServer())
+        .get('/users?page=1&perPage=2&sort=createdAt&sortDir=ASC')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      const users = response.body.items;
+      expect(users.length).toBeGreaterThan(1);
+      expect(new Date(users[0].createdAt).getTime()).toBeLessThan(
+        new Date(users[1].createdAt).getTime(),
+      );
+    });
+
+    it('/users (GET) -> List Users Ordered by CreatedAt DESC', async () => {
+      await request(app.getHttpServer())
+        .post('/users')
+        .send({
+          name: 'user1',
+          email: 'user1@email.com',
+          password: 'password123',
+        })
+        .expect(201);
+
+      await new Promise((r) => setTimeout(r, 1000));
+
+      await request(app.getHttpServer())
+        .post('/users')
+        .send({
+          name: 'user2',
+          email: 'user2@email.com',
+          password: 'password123',
+        })
+        .expect(201);
+
+      const response = await request(app.getHttpServer())
+        .get('/users?page=1&perPage=2&sort=createdAt&sortDir=DESC')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      const users = response.body.items;
+      expect(users.length).toBeGreaterThan(1);
+      expect(new Date(users[1].createdAt).getTime()).toBeLessThan(
+        new Date(users[0].createdAt).getTime(),
+      );
+    });
+
+    it('/users (GET) -> List Users Pagination', async () => {
+      await request(app.getHttpServer())
+        .post('/users')
+        .send({
+          name: 'user1',
+          email: 'user1@email.com',
+          password: 'password123',
+        })
+        .expect(201);
+
+      await new Promise((r) => setTimeout(r, 500));
+
+      await request(app.getHttpServer())
+        .post('/users')
+        .send({
+          name: 'user2',
+          email: 'user2@email.com',
+          password: 'password123',
+        })
+        .expect(201);
+
+      await new Promise((r) => setTimeout(r, 500));
+
+      await request(app.getHttpServer())
+        .post('/users')
+        .send({
+          name: 'user3',
+          email: 'user3@email.com',
+          password: 'password123',
+        })
+        .expect(201);
+
+      const responsePage1 = await request(app.getHttpServer())
+        .get('/users?page=1&perPage=2&sort=createdAt&sortDir=DESC')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      const usersPage1 = responsePage1.body.items;
+      expect(usersPage1.length).toBe(2);
+      expect(new Date(usersPage1[0].createdAt).getTime()).toBeGreaterThan(
+        new Date(usersPage1[1].createdAt).getTime(),
+      );
+
+      const responsePage2 = await request(app.getHttpServer())
+        .get('/users?page=2&perPage=2&sort=createdAt&sortDir=DESC')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      const usersPage2 = responsePage2.body.items;
+      expect(usersPage2.length).toBe(1);
+      expect(usersPage2[0].name).toBe('user1');
+
+      expect(usersPage1).not.toEqual(usersPage2);
+    });
   });
 
   describe('Search user', () => {
     it('/users/:id (GET) -> Search user by ID', async () => {
+      const user = await request(app.getHttpServer())
+        .post('/users')
+        .send({
+          name: 'user1',
+          email: 'user1@email.com',
+          password: 'password123',
+        })
+        .expect(201);
+
       const response = await request(app.getHttpServer())
-        .get(`/users/${testUser.id}`)
+        .get(`/users/${user.body.id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(response.body.id).toBe(testUser.id);
-      expect(response.body.name).toBe(testUser.name);
-      expect(response.body.email).toBe(testUser.email);
+      expect(response.body.id).toBe(user.body.id);
+      expect(response.body.name).toBe(user.body.name);
+      expect(response.body.email).toBe(user.body.email);
     });
 
     it('/users/:id (GET) -> Search user by ID not found', async () => {
@@ -231,8 +401,17 @@ describe('UsersController (e2e)', () => {
 
   describe('Patch user', () => {
     it('/users/:id (PATCH) -> Update user', async () => {
+      const user = await request(app.getHttpServer())
+        .post('/users')
+        .send({
+          name: 'user1',
+          email: 'user1@email.com',
+          password: 'password123',
+        })
+        .expect(201);
+
       const response = await request(app.getHttpServer())
-        .patch(`/users/${testUser.id}`)
+        .patch(`/users/${user.body.id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ name: 'Updated User' })
         .expect(204);
@@ -269,8 +448,17 @@ describe('UsersController (e2e)', () => {
 
   describe('Delete user', () => {
     it('/users/:id (DELETE) -> Remove user', async () => {
+      const user = await request(app.getHttpServer())
+        .post('/users')
+        .send({
+          name: 'user1',
+          email: 'user1@email.com',
+          password: 'password123',
+        })
+        .expect(201);
+
       await request(app.getHttpServer())
-        .delete(`/users/${testUser.id}`)
+        .delete(`/users/${user.body.id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
     });
