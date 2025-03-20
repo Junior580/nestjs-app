@@ -25,7 +25,7 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
-  ) {}
+  ) { }
 
   @ApiResponse({
     status: 201,
@@ -87,7 +87,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiResponse({
     status: 200,
-    description: 'user list',
+    description: 'User list',
     schema: {
       type: 'array',
       properties: {
@@ -114,7 +114,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiResponse({
     status: 200,
-    description: 'user list',
+    description: 'Get user',
     schema: {
       type: 'object',
       properties: {
@@ -142,20 +142,6 @@ export class UsersController {
   @ApiResponse({
     status: 204,
     description: 'User updated successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        id: {
-          type: 'string',
-        },
-        name: {
-          type: 'string',
-        },
-        email: {
-          type: 'string',
-        },
-      },
-    },
   })
   @ApiResponse({
     status: 401,
