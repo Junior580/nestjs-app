@@ -6,12 +6,15 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  IsUrl,
+  MinLength,
 } from 'class-validator';
 
 export class CreateProductDto {
   @ApiProperty({ description: 'Name of the product', example: 'Smartphone' })
   @IsString()
   @IsNotEmpty()
+  @MinLength(6)
   productName: string;
 
   @ApiProperty({
@@ -41,6 +44,7 @@ export class CreateProductDto {
   })
   @IsString()
   @IsOptional()
+  @IsUrl()
   imageUrl?: string;
 
   @ApiProperty({ description: 'Rating of the product', example: 4.5 })
