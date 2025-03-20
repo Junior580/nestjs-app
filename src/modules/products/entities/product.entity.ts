@@ -5,7 +5,7 @@ import { Order } from '../../orders/entities/order.entity';
 
 @Entity()
 export class Product extends BaseEntity {
-  @Column({ name: 'product_name' })
+  @Column({ name: 'product_name', unique: true })
   productName: string;
 
   @Column({ nullable: true })
@@ -23,7 +23,7 @@ export class Product extends BaseEntity {
   @Column({ type: 'float', nullable: true })
   rating?: number;
 
-  @ManyToMany(() => Order, (order) => order.products)
+  @ManyToMany(() => Order, (order) => order.products, { onDelete: 'CASCADE' })
   @JoinTable({
     name: 'order_products',
     joinColumn: { name: 'product_id', referencedColumnName: 'id' },

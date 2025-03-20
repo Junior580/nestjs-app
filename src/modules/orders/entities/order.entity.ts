@@ -13,11 +13,13 @@ import { User } from '../../users/entities/user.entity';
 
 @Entity()
 export class Order extends BaseEntity {
-  @ManyToOne(() => User, (user) => user.orders)
+  @ManyToOne(() => User, (user) => user.orders, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToMany(() => Product, (product) => product.orders)
+  @ManyToMany(() => Product, (product) => product.orders, {
+    onDelete: 'CASCADE',
+  })
   @JoinTable({
     name: 'order_products',
     joinColumn: { name: 'order_id', referencedColumnName: 'id' },

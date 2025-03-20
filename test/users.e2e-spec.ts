@@ -14,12 +14,14 @@ import * as request from 'supertest';
 import { Repository } from 'typeorm';
 
 import { AppModule } from '@/app.module';
+import { Order } from '@/modules/orders/entities/order.entity';
 import { User } from '@/modules/users/entities/user.entity';
 import { AppDataSource } from '@/shared/infra/database/typeorm.config';
 
 describe('UsersController (e2e)', () => {
   let app: INestApplication;
   let userRepository: Repository<User>;
+  let orderRepository: Repository<Order>;
   let accessToken: string;
   let testUser: User;
 
@@ -48,6 +50,10 @@ describe('UsersController (e2e)', () => {
     userRepository = moduleFixture.get<Repository<User>>(
       getRepositoryToken(User),
     );
+
+    orderRepository = moduleFixture.get<Repository<Order>>(
+      getRepositoryToken(Order),
+    );
   });
 
   afterAll(async () => {
@@ -56,7 +62,9 @@ describe('UsersController (e2e)', () => {
   });
 
   beforeEach(async () => {
-    await userRepository.clear();
+    await orderRepository.query('DELETE FROM "order_products"');
+    await orderRepository.query('DELETE FROM "order"');
+    await userRepository.query('DELETE FROM "user"');
   });
 
   describe('Create user', () => {

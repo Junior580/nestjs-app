@@ -16,6 +16,6 @@ export class User extends BaseEntity {
   @Exclude()
   password: string;
 
-  @OneToMany(() => Order, (order) => order.user)
+  @OneToMany(() => Order, (order) => order.user, { cascade: true })
   orders: Order[];
 }

@@ -1,27 +1,96 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { Product } from './entities/product.entity';
 
 @Injectable()
 export class ProductsService {
-  create(createProductDto: CreateProductDto) {
-    return 'This action adds a new product';
+  constructor(
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
+  ) { }
+
+  async create(createProductDto: CreateProductDto) {
+    const existingProduct = await this.productRepository.findOne({
+      where: { productName: createProductDto.productName },
+    });
+
+    if (existingProduct) {
+      throw new ConflictException('Product already exists');
+    }
+
+    const product = this.productRepository.create(createProductDto);
+
+    await this.productRepository.save(product);
+
+    return product;
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async findAll() {
+    return this.productRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(id: string) {
+    const product = await this.productRepository.findOne({ where: { id } });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    return product;
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: string, updateProductDto: UpdateProductDto) {
+    const hasValidField = Object.values(updateProductDto).some(
+      (value) => value !== null && value !== undefined && value !== '',
+    );
+
+    if (!hasValidField) {
+      throw new BadRequestException(
+        'At least one field must be required for update',
+      );
+    }
+
+    const product = await this.productRepository.findOne({ where: { id } });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    if (updateProductDto.productName) {
+      const existingProduct = await this.productRepository.findOne({
+        where: { productName: updateProductDto.productName },
+      });
+
+      if (existingProduct) {
+        throw new ConflictException('Product already exists');
+      }
+    }
+
+    await this.productRepository.update(id, {
+      ...updateProductDto,
+    });
+
+    return this.productRepository.findOne({ where: { id } });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async remove(id: string) {
+    const product = await this.productRepository.findOne({ where: { id } });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    await this.productRepository.remove(product);
+
+    return { message: `Product #${id} successfully removed` };
   }
 }
