@@ -498,7 +498,7 @@ describe('UsersController (e2e)', () => {
       const response = await request(app.getHttpServer())
         .delete(`/users/${nonExistentUserId}`)
         .set('Authorization', `Bearer ${accessToken}`)
-        .expect(404); // Espera erro 404
+        .expect(404);
 
       expect(response.body.message).toBe('User not found');
       expect(response.body.error).toBe('Not Found');

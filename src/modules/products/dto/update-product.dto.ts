@@ -5,6 +5,8 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  IsUrl,
+  MinLength,
 } from 'class-validator';
 
 export class UpdateProductDto {
@@ -15,6 +17,7 @@ export class UpdateProductDto {
   })
   @IsString()
   @IsOptional()
+  @MinLength(6)
   productName?: string;
 
   @ApiProperty({
@@ -53,6 +56,7 @@ export class UpdateProductDto {
   })
   @IsString()
   @IsOptional()
+  @IsUrl()
   imageUrl?: string;
 
   @ApiProperty({
