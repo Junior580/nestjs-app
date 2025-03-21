@@ -250,194 +250,185 @@ describe('ProductsController (e2e)', () => {
     });
 
     it('/products (GET) -> List Products', async () => {
-      await request(app.getHttpServer())
-        .post('/products')
-        .send({
-          productName: 'product 1',
-          description: 'description product 1',
-          price: 1499.99,
-          quantityInStock: 45,
-          imageUrl: 'https://example.com/laptop-pro15.jpg',
-          rating: 4.8,
-        })
-        .set('Authorization', `Bearer ${accessToken}`)
-        .expect(201);
+      await productRepository.save({
+        productName: 'product 1',
+        description: 'description product 1',
+        price: 1499.99,
+        quantityInStock: 45,
+        imageUrl: 'https://example.com/laptop-pro15.jpg',
+        rating: 4.8,
+      });
 
-      await request(app.getHttpServer())
-        .post('/products')
-        .send({
-          productName: 'product 2',
-          description: 'description product 2',
-          price: 1499.99,
-          quantityInStock: 45,
-          imageUrl: 'https://example.com/laptop-pro15.jpg',
-          rating: 4.8,
-        })
-        .set('Authorization', `Bearer ${accessToken}`)
-        .expect(201);
+      await productRepository.save({
+        productName: 'product 2',
+        description: 'description product 2',
+        price: 1499.99,
+        quantityInStock: 45,
+        imageUrl: 'https://example.com/laptop-pro15.jpg',
+        rating: 4.8,
+      });
 
       const response = await request(app.getHttpServer())
-        .get('/products')
+        .get('/products?page=0&perPage=2&sort=createdAt&sortDir=ASC')
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      // expect(response.body.items).toBeInstanceOf(Array);
-      expect(response.body[0].productName).toBe('product 1');
-      expect(response.body[0].description).toBe('description product 1');
-      expect(response.body.length).toBeGreaterThan(0);
-      // expect(response.body.total).toBeDefined();
-      // expect(response.body.currentPage).toBe(1);
-      // expect(response.body.perPage).toBe(2);
-      // expect(response.body.sort).toBe('createdAt');
-      // expect(response.body.sortDir).toBe('ASC');
+      expect(response.body.items).toBeInstanceOf(Array);
+      expect(response.body.items[0].productName).toBe('product 1');
+      expect(response.body.items[0].description).toBe('description product 1');
+      expect(response.body.items.length).toBeGreaterThan(0);
+      expect(response.body.total).toBeDefined();
+      expect(response.body.currentPage).toBe(1);
+      expect(response.body.perPage).toBe(2);
+      expect(response.body.sort).toBe('createdAt');
+      expect(response.body.sortDir).toBe('ASC');
     });
 
-    // it('/products (GET) -> List products Ordered by CreatedAt ASC', async () => {
-    //   await request(app.getHttpServer())
-    //     .post('/products')
-    //     .send({
-    //     })
-    //     .expect(201);
-    //
-    //   await new Promise((r) => setTimeout(r, 1000));
-    //
-    //   await request(app.getHttpServer())
-    //     .post('/users')
-    //     .send({
-    //       name: 'user2',
-    //       email: 'user2@email.com',
-    //       password: 'password123',
-    //     })
-    //     .expect(201);
-    //
-    //   const response = await request(app.getHttpServer())
-    //     .get('/users?page=1&perPage=2&sort=createdAt&sortDir=ASC')
-    //     .set('Authorization', `Bearer ${accessToken}`)
-    //     .expect(200);
-    //
-    //   const users = response.body.items;
-    //   expect(users.length).toBeGreaterThan(1);
-    //   expect(new Date(users[0].createdAt).getTime()).toBeLessThan(
-    //     new Date(users[1].createdAt).getTime(),
-    //   );
-    // });
+    it('/products (GET) -> List Products Ordered by CreatedAt ASC', async () => {
+      await productRepository.save({
+        productName: 'product 1',
+        description: 'description product ',
+        price: 1499.99,
+        quantityInStock: 45,
+        imageUrl: 'https://example.com/laptop-pro15.jpg',
+        rating: 4.8,
+      });
 
-    // it('/users (GET) -> List Users Ordered by CreatedAt DESC', async () => {
-    //   await request(app.getHttpServer())
-    //     .post('/users')
-    //     .send({
-    //       name: 'user1',
-    //       email: 'user1@email.com',
-    //       password: 'password123',
-    //     })
-    //     .expect(201);
-    //
-    //   await new Promise((r) => setTimeout(r, 1000));
-    //
-    //   await request(app.getHttpServer())
-    //     .post('/users')
-    //     .send({
-    //       name: 'user2',
-    //       email: 'user2@email.com',
-    //       password: 'password123',
-    //     })
-    //     .expect(201);
-    //
-    //   const response = await request(app.getHttpServer())
-    //     .get('/users?page=1&perPage=2&sort=createdAt&sortDir=DESC')
-    //     .set('Authorization', `Bearer ${accessToken}`)
-    //     .expect(200);
-    //
-    //   const users = response.body.items;
-    //   expect(users.length).toBeGreaterThan(1);
-    //   expect(new Date(users[1].createdAt).getTime()).toBeLessThan(
-    //     new Date(users[0].createdAt).getTime(),
-    //   );
-    // });
-    //
-    // it('/users (GET) -> List Users Pagination', async () => {
-    //   await request(app.getHttpServer())
-    //     .post('/users')
-    //     .send({
-    //       name: 'user1',
-    //       email: 'user1@email.com',
-    //       password: 'password123',
-    //     })
-    //     .expect(201);
-    //
-    //   await new Promise((r) => setTimeout(r, 500));
-    //
-    //   await request(app.getHttpServer())
-    //     .post('/users')
-    //     .send({
-    //       name: 'user2',
-    //       email: 'user2@email.com',
-    //       password: 'password123',
-    //     })
-    //     .expect(201);
-    //
-    //   await new Promise((r) => setTimeout(r, 500));
-    //
-    //   await request(app.getHttpServer())
-    //     .post('/users')
-    //     .send({
-    //       name: 'user3',
-    //       email: 'user3@email.com',
-    //       password: 'password123',
-    //     })
-    //     .expect(201);
-    //
-    //   const responsePage1 = await request(app.getHttpServer())
-    //     .get('/users?page=1&perPage=2&sort=createdAt&sortDir=DESC')
-    //     .set('Authorization', `Bearer ${accessToken}`)
-    //     .expect(200);
-    //
-    //   const usersPage1 = responsePage1.body.items;
-    //   expect(usersPage1.length).toBe(2);
-    //   expect(new Date(usersPage1[0].createdAt).getTime()).toBeGreaterThan(
-    //     new Date(usersPage1[1].createdAt).getTime(),
-    //   );
-    //
-    //   const responsePage2 = await request(app.getHttpServer())
-    //     .get('/users?page=2&perPage=2&sort=createdAt&sortDir=DESC')
-    //     .set('Authorization', `Bearer ${accessToken}`)
-    //     .expect(200);
-    //
-    //   const usersPage2 = responsePage2.body.items;
-    //   expect(usersPage2.length).toBe(1);
-    //   expect(usersPage2[0].name).toBe('user1');
-    //
-    //   expect(usersPage1).not.toEqual(usersPage2);
-    // });
+      await new Promise((r) => setTimeout(r, 1000));
+
+      await productRepository.save({
+        productName: 'product 2',
+        description: 'description product 2',
+        price: 1499.99,
+        quantityInStock: 45,
+        imageUrl: 'https://example.com/laptop-pro15.jpg',
+        rating: 4.8,
+      });
+
+      const response = await request(app.getHttpServer())
+        .get('/products?page=1&perPage=2&sort=createdAt&sortDir=ASC')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      const products = response.body.items;
+      expect(products.length).toBeGreaterThan(1);
+      expect(new Date(products[0].createdAt).getTime()).toBeLessThan(
+        new Date(products[1].createdAt).getTime(),
+      );
+    });
+
+    it('/products (GET) -> List Products Ordered by CreatedAt DESC', async () => {
+      await productRepository.save({
+        productName: 'product 1',
+        description: 'description product ',
+        price: 1499.99,
+        quantityInStock: 45,
+        imageUrl: 'https://example.com/laptop-pro15.jpg',
+        rating: 4.8,
+      });
+
+      await new Promise((r) => setTimeout(r, 1000));
+
+      await productRepository.save({
+        productName: 'product 2',
+        description: 'description product 2',
+        price: 1499.99,
+        quantityInStock: 45,
+        imageUrl: 'https://example.com/laptop-pro15.jpg',
+        rating: 4.8,
+      });
+
+      const response = await request(app.getHttpServer())
+        .get('/products?page=1&perPage=2&sort=createdAt&sortDir=DESC')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      const products = response.body.items;
+      expect(products.length).toBeGreaterThan(1);
+      expect(new Date(products[1].createdAt).getTime()).toBeLessThan(
+        new Date(products[0].createdAt).getTime(),
+      );
+    });
+
+    it('/products (GET) -> List Products Pagination', async () => {
+      await productRepository.save({
+        productName: 'product 1',
+        description: 'description product ',
+        price: 1499.99,
+        quantityInStock: 45,
+        imageUrl: 'https://example.com/laptop-pro15.jpg',
+        rating: 4.8,
+      });
+
+      await new Promise((r) => setTimeout(r, 500));
+
+      await productRepository.save({
+        productName: 'product 2',
+        description: 'description product 2',
+        price: 1499.99,
+        quantityInStock: 45,
+        imageUrl: 'https://example.com/laptop-pro15.jpg',
+        rating: 4.8,
+      });
+
+      await new Promise((r) => setTimeout(r, 500));
+
+      await productRepository.save({
+        productName: 'product 3',
+        description: 'description product 3',
+        price: 1499.99,
+        quantityInStock: 45,
+        imageUrl: 'https://example.com/laptop-pro15.jpg',
+        rating: 4.8,
+      });
+
+      const responsePage1 = await request(app.getHttpServer())
+        .get('/products?page=1&perPage=2&sort=createdAt&sortDir=DESC')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      const productsPage1 = responsePage1.body.items;
+      expect(productsPage1.length).toBe(2);
+      expect(new Date(productsPage1[0].createdAt).getTime()).toBeGreaterThan(
+        new Date(productsPage1[1].createdAt).getTime(),
+      );
+
+      const responsePage2 = await request(app.getHttpServer())
+        .get('/products?page=2&perPage=2&sort=createdAt&sortDir=DESC')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      const productsPage2 = responsePage2.body.items;
+      expect(productsPage2.length).toBe(1);
+      expect(productsPage2[0].productName).toBe('product 1');
+
+      expect(productsPage1).not.toEqual(productsPage2);
+    });
   });
 
   describe('Search products', () => {
     it('/products/:id (GET) -> Search product by ID', async () => {
-      const product = await request(app.getHttpServer())
-        .post('/products')
-        .send({
-          productName: 'product 1',
-          description: 'description product 1',
-          price: 1499.99,
-          quantityInStock: 45,
-          imageUrl: 'https://example.com/laptop-pro15.jpg',
-          rating: 4.8,
-        })
-        .set('Authorization', `Bearer ${accessToken}`)
-        .expect(201);
+      const product = await productRepository.save({
+        productName: 'product 1',
+        description: 'description product 1',
+        price: 1499.99,
+        quantityInStock: 45,
+        imageUrl: 'https://example.com/laptop-pro15.jpg',
+        rating: 4.8,
+      });
 
       const response = await request(app.getHttpServer())
-        .get(`/products/${product.body.id}`)
+        .get(`/products/${product.id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(response.body.id).toBe(product.body.id);
-      expect(response.body.productName).toBe(product.body.productName);
-      expect(response.body.description).toBe(product.body.description);
-      expect(response.body.price).toStrictEqual(String(product.body.price));
-      expect(response.body.quantityInStock).toBe(product.body.quantityInStock);
-      expect(response.body.imageUrl).toBe(product.body.imageUrl);
-      expect(response.body.rating).toBe(product.body.rating);
+      expect(response.body.id).toBe(product.id);
+      expect(response.body.productName).toBe(product.productName);
+      expect(response.body.description).toBe(product.description);
+      expect(response.body.price).toStrictEqual(String(product.price));
+      expect(response.body.quantityInStock).toBe(product.quantityInStock);
+      expect(response.body.imageUrl).toBe(product.imageUrl);
+      expect(response.body.rating).toBe(product.rating);
     });
 
     it('/products/:id (GET) -> Search product by ID not found', async () => {
@@ -463,21 +454,17 @@ describe('ProductsController (e2e)', () => {
 
   describe('Patch product', () => {
     it('/products/:id (PATCH) -> Update products', async () => {
-      const product = await request(app.getHttpServer())
-        .post('/products')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          productName: 'product 1',
-          description: 'description product 1',
-          price: 1499.99,
-          quantityInStock: 45,
-          imageUrl: 'https://example.com/laptop-pro15.jpg',
-          rating: 4.8,
-        })
-        .expect(201);
+      const product = await productRepository.save({
+        productName: 'product 1',
+        description: 'description product 1',
+        price: 1499.99,
+        quantityInStock: 45,
+        imageUrl: 'https://example.com/laptop-pro15.jpg',
+        rating: 4.8,
+      });
 
       const response = await request(app.getHttpServer())
-        .patch(`/products/${product.body.id}`)
+        .patch(`/products/${product.id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ productName: 'Updated product 1' })
         .expect(204);
@@ -498,21 +485,17 @@ describe('ProductsController (e2e)', () => {
     });
 
     it('/products/:id (PATCH) -> Request body with invalid data', async () => {
-      const product = await request(app.getHttpServer())
-        .post('/products')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          productName: 'product 1',
-          description: 'description product 1',
-          price: 1499.99,
-          quantityInStock: 45,
-          imageUrl: 'https://example.com/laptop-pro15.jpg',
-          rating: 4.8,
-        })
-        .expect(201);
+      const product = await productRepository.save({
+        productName: 'product 1',
+        description: 'description product 1',
+        price: 1499.99,
+        quantityInStock: 45,
+        imageUrl: 'https://example.com/laptop-pro15.jpg',
+        rating: 4.8,
+      });
 
       const response = await request(app.getHttpServer())
-        .patch(`/products/${product.body.id}`)
+        .patch(`/products/${product.id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           productName: 'a',
@@ -531,26 +514,22 @@ describe('ProductsController (e2e)', () => {
 
   describe('Delete product', () => {
     it('/products/:id (DELETE) -> Remove product', async () => {
-      const product = await request(app.getHttpServer())
-        .post('/products')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          productName: 'product 1',
-          description: 'description product 1',
-          price: 1499.99,
-          quantityInStock: 45,
-          imageUrl: 'https://example.com/laptop-pro15.jpg',
-          rating: 4.8,
-        })
-        .expect(201);
+      const product = await productRepository.save({
+        productName: 'product 1',
+        description: 'description product 1',
+        price: 1499.99,
+        quantityInStock: 45,
+        imageUrl: 'https://example.com/laptop-pro15.jpg',
+        rating: 4.8,
+      });
 
       await request(app.getHttpServer())
-        .delete(`/products/${product.body.id}`)
+        .delete(`/products/${product.id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
       await request(app.getHttpServer())
-        .get(`/products/${product.body.id}`)
+        .get(`/products/${product.id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(404);
     });

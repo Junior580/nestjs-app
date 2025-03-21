@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CreateProductDto } from './dto/create-product.dto';
+import { ListProductDto } from './dto/list-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 
@@ -34,8 +35,36 @@ export class ProductsService {
     return product;
   }
 
-  async findAll() {
-    return this.productRepository.find();
+  async findAll(listProductDto: ListProductDto) {
+    const orderByField = listProductDto.sort ?? 'createdAt';
+    const orderByDir = listProductDto.sortDir ?? 'ASC';
+    const page = Number(
+      listProductDto.page && listProductDto.page > 0 ? listProductDto.page : 1,
+    );
+    const perPage = Number(
+      listProductDto.perPage && listProductDto.perPage > 0
+        ? listProductDto.perPage
+        : 10,
+    );
+
+    const count = await this.productRepository.count();
+
+    const products = await this.productRepository.find({
+      where: { productName: listProductDto.filter },
+      order: { [orderByField]: orderByDir },
+      skip: (page - 1) * perPage,
+      take: perPage,
+    });
+
+    return {
+      items: products,
+      total: count,
+      currentPage: page,
+      perPage,
+      sort: orderByField,
+      sortDir: orderByDir,
+      filter: listProductDto.filter ?? null,
+    };
   }
 
   async findOne(id: string) {

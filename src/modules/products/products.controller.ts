@@ -7,18 +7,20 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 
 import { AuthGuard } from '../auth/auth.guard';
 import { CreateProductDto } from './dto/create-product.dto';
+import { ListProductDto } from './dto/list-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductsService } from './products.service';
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(private readonly productsService: ProductsService) { }
 
   @ApiBearerAuth()
   @ApiResponse({
@@ -102,8 +104,8 @@ export class ProductsController {
   })
   @UseGuards(AuthGuard)
   @Get()
-  findAll() {
-    return this.productsService.findAll();
+  findAll(@Query() listproductDto: ListProductDto) {
+    return this.productsService.findAll(listproductDto);
   }
 
   @ApiBearerAuth()
