@@ -16,6 +16,7 @@ import { Repository } from 'typeorm';
 import { AppModule } from '@/app.module';
 import { Order } from '@/modules/orders/entities/order.entity';
 import { User } from '@/modules/users/entities/user.entity';
+import { BcryptjsHashProvider } from '@/modules/users/hash-provider/bcrypt-hash.provider';
 import { AppDataSource } from '@/shared/infra/database/typeorm.config';
 
 describe('UsersController (e2e)', () => {
@@ -24,6 +25,7 @@ describe('UsersController (e2e)', () => {
   let orderRepository: Repository<Order>;
   let accessToken: string;
   let testUser: User;
+  let hashProvider: BcryptjsHashProvider;
 
   beforeAll(async () => {
     await AppDataSource.initialize();
@@ -54,6 +56,24 @@ describe('UsersController (e2e)', () => {
     orderRepository = moduleFixture.get<Repository<Order>>(
       getRepositoryToken(Order),
     );
+
+    hashProvider = new BcryptjsHashProvider();
+
+    await userRepository.save({
+      name: 'user1test',
+      email: 'user1test@email.com',
+      password: await hashProvider.generateHash('password123'),
+    });
+
+    const auth = await request(app.getHttpServer())
+      .post('/users/signin')
+      .send({
+        email: 'user1test@email.com',
+        password: 'password123',
+      })
+      .expect(201);
+
+    accessToken = auth.body.accessToken;
   });
 
   afterAll(async () => {
@@ -86,14 +106,11 @@ describe('UsersController (e2e)', () => {
     });
 
     it('/users (POST) -> Create user with existing email', async () => {
-      await request(app.getHttpServer())
-        .post('/users')
-        .send({
-          name: 'user1',
-          email: 'user1@email.com',
-          password: 'password123',
-        })
-        .expect(201);
+      await userRepository.save({
+        name: 'user1',
+        email: 'user1@email.com',
+        password: 'password123',
+      });
 
       const response = await request(app.getHttpServer())
         .post('/users')
@@ -157,14 +174,11 @@ describe('UsersController (e2e)', () => {
 
   describe('Authenticate user', () => {
     it('/users/signin (POST) -> Authenticate user', async () => {
-      await request(app.getHttpServer())
-        .post('/users')
-        .send({
-          name: 'user1',
-          email: 'user1@email.com',
-          password: 'password123',
-        })
-        .expect(201);
+      await userRepository.save({
+        name: 'user1',
+        email: 'user1@email.com',
+        password: await hashProvider.generateHash('password123'),
+      });
 
       const response = await request(app.getHttpServer())
         .post('/users/signin')
@@ -218,14 +232,11 @@ describe('UsersController (e2e)', () => {
     });
 
     it('/users (GET) -> List Users (Authenticated)', async () => {
-      await request(app.getHttpServer())
-        .post('/users')
-        .send({
-          name: 'user1',
-          email: 'user1@email.com',
-          password: 'password123',
-        })
-        .expect(201);
+      await userRepository.save({
+        name: 'user1',
+        email: 'user1@email.com',
+        password: await hashProvider.generateHash('password123'),
+      });
 
       const response = await request(app.getHttpServer())
         .get('/users?page=0&perPage=2&sort=createdAt&sortDir=ASC&filter=user1')
@@ -244,25 +255,19 @@ describe('UsersController (e2e)', () => {
     });
 
     it('/users (GET) -> List Users Ordered by CreatedAt ASC', async () => {
-      await request(app.getHttpServer())
-        .post('/users')
-        .send({
-          name: 'user1',
-          email: 'user1@email.com',
-          password: 'password123',
-        })
-        .expect(201);
+      await userRepository.save({
+        name: 'user1',
+        email: 'user1@email.com',
+        password: await hashProvider.generateHash('password123'),
+      });
 
       await new Promise((r) => setTimeout(r, 1000));
 
-      await request(app.getHttpServer())
-        .post('/users')
-        .send({
-          name: 'user2',
-          email: 'user2@email.com',
-          password: 'password123',
-        })
-        .expect(201);
+      await userRepository.save({
+        name: 'user2',
+        email: 'user2@email.com',
+        password: await hashProvider.generateHash('password123'),
+      });
 
       const response = await request(app.getHttpServer())
         .get('/users?page=1&perPage=2&sort=createdAt&sortDir=ASC')
@@ -277,25 +282,19 @@ describe('UsersController (e2e)', () => {
     });
 
     it('/users (GET) -> List Users Ordered by CreatedAt DESC', async () => {
-      await request(app.getHttpServer())
-        .post('/users')
-        .send({
-          name: 'user1',
-          email: 'user1@email.com',
-          password: 'password123',
-        })
-        .expect(201);
+      await userRepository.save({
+        name: 'user1',
+        email: 'user1@email.com',
+        password: await hashProvider.generateHash('password123'),
+      });
 
       await new Promise((r) => setTimeout(r, 1000));
 
-      await request(app.getHttpServer())
-        .post('/users')
-        .send({
-          name: 'user2',
-          email: 'user2@email.com',
-          password: 'password123',
-        })
-        .expect(201);
+      await userRepository.save({
+        name: 'user2',
+        email: 'user2@email.com',
+        password: await hashProvider.generateHash('password123'),
+      });
 
       const response = await request(app.getHttpServer())
         .get('/users?page=1&perPage=2&sort=createdAt&sortDir=DESC')
@@ -310,36 +309,27 @@ describe('UsersController (e2e)', () => {
     });
 
     it('/users (GET) -> List Users Pagination', async () => {
-      await request(app.getHttpServer())
-        .post('/users')
-        .send({
-          name: 'user1',
-          email: 'user1@email.com',
-          password: 'password123',
-        })
-        .expect(201);
+      await userRepository.save({
+        name: 'user1',
+        email: 'user1@email.com',
+        password: await hashProvider.generateHash('password123'),
+      });
 
       await new Promise((r) => setTimeout(r, 500));
 
-      await request(app.getHttpServer())
-        .post('/users')
-        .send({
-          name: 'user2',
-          email: 'user2@email.com',
-          password: 'password123',
-        })
-        .expect(201);
+      await userRepository.save({
+        name: 'user2',
+        email: 'user2@email.com',
+        password: await hashProvider.generateHash('password123'),
+      });
 
       await new Promise((r) => setTimeout(r, 500));
 
-      await request(app.getHttpServer())
-        .post('/users')
-        .send({
-          name: 'user3',
-          email: 'user3@email.com',
-          password: 'password123',
-        })
-        .expect(201);
+      await userRepository.save({
+        name: 'user3',
+        email: 'user3@email.com',
+        password: await hashProvider.generateHash('password123'),
+      });
 
       const responsePage1 = await request(app.getHttpServer())
         .get('/users?page=1&perPage=2&sort=createdAt&sortDir=DESC')
@@ -367,23 +357,20 @@ describe('UsersController (e2e)', () => {
 
   describe('Search user', () => {
     it('/users/:id (GET) -> Search user by ID', async () => {
-      const user = await request(app.getHttpServer())
-        .post('/users')
-        .send({
-          name: 'user1',
-          email: 'user1@email.com',
-          password: 'password123',
-        })
-        .expect(201);
+      const user = await userRepository.save({
+        name: 'user1',
+        email: 'user1@email.com',
+        password: 'password123',
+      });
 
       const response = await request(app.getHttpServer())
-        .get(`/users/${user.body.id}`)
+        .get(`/users/${user.id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(response.body.id).toBe(user.body.id);
-      expect(response.body.name).toBe(user.body.name);
-      expect(response.body.email).toBe(user.body.email);
+      expect(response.body.id).toBe(user.id);
+      expect(response.body.name).toBe(user.name);
+      expect(response.body.email).toBe(user.email);
     });
 
     it('/users/:id (GET) -> Search user by ID not found', async () => {
@@ -409,17 +396,14 @@ describe('UsersController (e2e)', () => {
 
   describe('Patch user', () => {
     it('/users/:id (PATCH) -> Update user', async () => {
-      const user = await request(app.getHttpServer())
-        .post('/users')
-        .send({
-          name: 'user1',
-          email: 'user1@email.com',
-          password: 'password123',
-        })
-        .expect(201);
+      const user = await userRepository.save({
+        name: 'user1',
+        email: 'user1@email.com',
+        password: 'password123',
+      });
 
       const response = await request(app.getHttpServer())
-        .patch(`/users/${user.body.id}`)
+        .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ name: 'Updated User' })
         .expect(204);
@@ -456,17 +440,14 @@ describe('UsersController (e2e)', () => {
 
   describe('Delete user', () => {
     it('/users/:id (DELETE) -> Remove user', async () => {
-      const user = await request(app.getHttpServer())
-        .post('/users')
-        .send({
-          name: 'user1',
-          email: 'user1@email.com',
-          password: 'password123',
-        })
-        .expect(201);
+      const user = await userRepository.save({
+        name: 'user1',
+        email: 'user1@email.com',
+        password: 'password123',
+      });
 
       await request(app.getHttpServer())
-        .delete(`/users/${user.body.id}`)
+        .delete(`/users/${user.id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
     });
