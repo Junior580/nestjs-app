@@ -408,6 +408,52 @@ describe('UsersController (e2e)', () => {
       expect(response.body).toEqual({});
     });
 
+    it('/users/:id (PATCH) -> Update user name', async () => {
+      const user = await userRepository.save({
+        name: 'user1',
+        email: 'user1@email.com',
+        password: 'password123',
+      });
+
+      await request(app.getHttpServer())
+        .patch(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ name: 'user1 updated' })
+        .expect(204);
+
+      const response = await request(app.getHttpServer())
+        .get(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+
+        .expect(200);
+
+      expect(response.body).toHaveProperty('name');
+      expect(response.body.name).toBe('user1 updated');
+    });
+
+    it('/users/:id (PATCH) -> Update user email', async () => {
+      const user = await userRepository.save({
+        name: 'user1',
+        email: 'user1@email.com',
+        password: 'password123',
+      });
+
+      await request(app.getHttpServer())
+        .patch(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ email: 'user1updated@email.com' })
+        .expect(204);
+
+      const response = await request(app.getHttpServer())
+        .get(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+
+        .expect(200);
+
+      expect(response.body).toHaveProperty('email');
+      expect(response.body.email).toBe('user1updated@email.com');
+    });
+
     it('/users/:id (PATCH) -> Update user password', async () => {
       const user = await userRepository.save({
         name: 'user1',
