@@ -10,13 +10,13 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { hash } from 'bcrypt';
 import * as request from 'supertest';
 import { Repository } from 'typeorm';
 
 import { AppModule } from '@/app.module';
 import { Order } from '@/modules/orders/entities/order.entity';
 import { User } from '@/modules/users/entities/user.entity';
-import { BcryptjsHashProvider } from '@/modules/users/hash-provider/bcrypt-hash.provider';
 import { AppDataSource } from '@/shared/infra/database/typeorm.config';
 
 describe('UsersController (e2e)', () => {
@@ -25,7 +25,6 @@ describe('UsersController (e2e)', () => {
   let orderRepository: Repository<Order>;
   let accessToken: string;
   let testUser: User;
-  let hashProvider: BcryptjsHashProvider;
 
   beforeAll(async () => {
     await AppDataSource.initialize();
@@ -57,12 +56,10 @@ describe('UsersController (e2e)', () => {
       getRepositoryToken(Order),
     );
 
-    hashProvider = new BcryptjsHashProvider();
-
     await userRepository.save({
       name: 'user1test',
       email: 'user1test@email.com',
-      password: await hashProvider.generateHash('password123'),
+      password: await hash('password123', 6),
     });
 
     const auth = await request(app.getHttpServer())
@@ -177,7 +174,7 @@ describe('UsersController (e2e)', () => {
       await userRepository.save({
         name: 'user1',
         email: 'user1@email.com',
-        password: await hashProvider.generateHash('password123'),
+        password: await hash('password123', 6),
       });
 
       const response = await request(app.getHttpServer())
@@ -235,7 +232,7 @@ describe('UsersController (e2e)', () => {
       await userRepository.save({
         name: 'user1',
         email: 'user1@email.com',
-        password: await hashProvider.generateHash('password123'),
+        password: await hash('password123', 6),
       });
 
       const response = await request(app.getHttpServer())
@@ -258,7 +255,7 @@ describe('UsersController (e2e)', () => {
       await userRepository.save({
         name: 'user1',
         email: 'user1@email.com',
-        password: await hashProvider.generateHash('password123'),
+        password: await hash('password123', 6),
       });
 
       await new Promise((r) => setTimeout(r, 1000));
@@ -266,7 +263,7 @@ describe('UsersController (e2e)', () => {
       await userRepository.save({
         name: 'user2',
         email: 'user2@email.com',
-        password: await hashProvider.generateHash('password123'),
+        password: await hash('password123', 6),
       });
 
       const response = await request(app.getHttpServer())
@@ -285,7 +282,7 @@ describe('UsersController (e2e)', () => {
       await userRepository.save({
         name: 'user1',
         email: 'user1@email.com',
-        password: await hashProvider.generateHash('password123'),
+        password: await hash('password123', 6),
       });
 
       await new Promise((r) => setTimeout(r, 1000));
@@ -293,7 +290,7 @@ describe('UsersController (e2e)', () => {
       await userRepository.save({
         name: 'user2',
         email: 'user2@email.com',
-        password: await hashProvider.generateHash('password123'),
+        password: await hash('password123', 6),
       });
 
       const response = await request(app.getHttpServer())
@@ -312,7 +309,7 @@ describe('UsersController (e2e)', () => {
       await userRepository.save({
         name: 'user1',
         email: 'user1@email.com',
-        password: await hashProvider.generateHash('password123'),
+        password: await hash('password123', 6),
       });
 
       await new Promise((r) => setTimeout(r, 500));
@@ -320,7 +317,7 @@ describe('UsersController (e2e)', () => {
       await userRepository.save({
         name: 'user2',
         email: 'user2@email.com',
-        password: await hashProvider.generateHash('password123'),
+        password: await hash('password123', 6),
       });
 
       await new Promise((r) => setTimeout(r, 500));
@@ -328,7 +325,7 @@ describe('UsersController (e2e)', () => {
       await userRepository.save({
         name: 'user3',
         email: 'user3@email.com',
-        password: await hashProvider.generateHash('password123'),
+        password: await hash('password123', 6),
       });
 
       const responsePage1 = await request(app.getHttpServer())
@@ -409,6 +406,30 @@ describe('UsersController (e2e)', () => {
         .expect(204);
 
       expect(response.body).toEqual({});
+    });
+
+    it('/users/:id (PATCH) -> Update user password', async () => {
+      const user = await userRepository.save({
+        name: 'user1',
+        email: 'user1@email.com',
+        password: 'password123',
+      });
+
+      await request(app.getHttpServer())
+        .patch(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ password: 'Updated password' })
+        .expect(204);
+
+      const response = await request(app.getHttpServer())
+        .post(`/users/signin`)
+        .send({
+          email: 'user1@email.com',
+          password: 'Updated password',
+        })
+        .expect(201);
+
+      expect(response.body).toHaveProperty('accessToken');
     });
 
     it('/users/:id (PATCH) -> Unauthorized', async () => {
