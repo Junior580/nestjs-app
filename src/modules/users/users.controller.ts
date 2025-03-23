@@ -12,8 +12,8 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 
-import { AuthGuard } from '../auth/auth.guard';
 import { AuthService } from '../auth/auth.service';
+import { AuthGuard } from '../auth/guards/auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ListUserDto } from './dto/list-user.dto';
 import { SignInDto } from './dto/signin-user.dto';

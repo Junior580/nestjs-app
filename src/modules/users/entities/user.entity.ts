@@ -24,6 +24,9 @@ export class User extends BaseEntity {
   })
   role: Role;
 
+  @Column({ nullable: true })
+  hashedRefreshToken: string;
+
   @OneToMany(() => Order, (order) => order.user, { cascade: true })
   orders: Order[];
 }

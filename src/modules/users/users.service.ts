@@ -110,6 +110,10 @@ export class UsersService {
     return user;
   }
 
+  async updateHashedRefreshToken(id: string, hashedRefreshToken: string) {
+    return await this.userRepository.update({ id }, { hashedRefreshToken });
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto) {
     const hasValidField = Object.values(updateUserDto).some(
       (value) => value !== null && value !== undefined && value !== '',
