@@ -12,6 +12,7 @@ import { EnvConfigService } from './env-config.service';
         NODE_ENV: Joi.string().valid('dev', 'prod', 'test').default('dev'),
         PORT: Joi.number().port().default(3000),
         JWT_SECRET: Joi.string().uuid(),
+        REFRESH_JWT_SECRET: Joi.string().uuid(),
         DATABASE_URL: Joi.string().uri(),
       }),
     }),
