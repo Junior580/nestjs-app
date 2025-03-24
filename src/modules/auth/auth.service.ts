@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { compare, hash } from 'bcrypt';
+
+import { BcryptjsHashProvider } from '@/shared/infra/providers/hash-provider/bcrypt-hash.provider';
 
 import { EnvConfigService } from '../../shared/infra/env-config/env-config.service';
 import { UsersService } from '../users/users.service';
@@ -13,13 +14,17 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: EnvConfigService,
     private usersService: UsersService,
+    private hashProvider: BcryptjsHashProvider,
   ) {}
 
   async validateUser(email: string, password: string): Promise<{ id: string }> {
     const user = await this.usersService.findByEmail(email);
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
-    const isPasswordMatch = await compare(password, user.password);
+    const isPasswordMatch = await this.hashProvider.compareHash(
+      password,
+      user.password,
+    );
 
     if (!isPasswordMatch)
       throw new UnauthorizedException('Invalid credentials');
@@ -30,7 +35,8 @@ export class AuthService {
   async login(userId: string) {
     const { accessToken, refreshToken } = await this.generateTokens(userId);
 
-    const hashedRefreshToken = await hash(refreshToken, 6);
+    const hashedRefreshToken =
+      await this.hashProvider.generateHash(refreshToken);
 
     await this.usersService.updateHashedRefreshToken(
       userId,
@@ -73,7 +79,7 @@ export class AuthService {
     if (!user || !user.hashedRefreshToken)
       throw new UnauthorizedException('Invalid Refresh Token');
 
-    const refreshTokenMatches = await compare(
+    const refreshTokenMatches = await this.hashProvider.compareHash(
       refreshToken,
       user.hashedRefreshToken,
     );

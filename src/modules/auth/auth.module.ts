@@ -5,6 +5,7 @@ import { PassportModule } from '@nestjs/passport';
 
 import { EnvConfigModule } from '@/shared/infra/env-config/env-config.module';
 import { EnvConfigService } from '@/shared/infra/env-config/env-config.service';
+import { BcryptjsHashProvider } from '@/shared/infra/providers/hash-provider/bcrypt-hash.provider';
 
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
@@ -40,6 +41,7 @@ import { RefreshJwtStrategy } from './strategies/refresh.strategy';
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
+    BcryptjsHashProvider,
   ],
   exports: [AuthService],
 })
