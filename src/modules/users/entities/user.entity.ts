@@ -17,18 +17,12 @@ export class User extends BaseEntity {
   @Exclude()
   password: string;
 
-  // @Column({
-  //   type: 'enum',
-  //   enum: Role,
-  //   default: Role.USER,
-  // })
-  // role: Role;
-  // 'ADMIN',
-  // EDITOR = 'EDITOR',
-  // USER = 'USER',
-
-  @Column({ type: 'enum', enum: ['admin', 'USER', 'EDITOR'], default: 'USER' })
-  role: 'ADMIN' | 'USER' | 'EDITOR';
+  @Column({
+    type: 'enum',
+    enum: Role,
+    default: Role.USER,
+  })
+  role: Role;
 
   @Column({ nullable: true })
   hashedRefreshToken: string;
