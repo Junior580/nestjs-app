@@ -1,4 +1,4 @@
-import { Column, Entity, JoinTable, ManyToMany } from 'typeorm';
+import { Column, Entity, ManyToMany } from 'typeorm';
 
 import { BaseEntity } from '../../../shared/infra/entities/entity';
 import { Order } from '../../orders/entities/order.entity';
@@ -24,10 +24,5 @@ export class Product extends BaseEntity {
   rating?: number;
 
   @ManyToMany(() => Order, (order) => order.products, { onDelete: 'CASCADE' })
-  @JoinTable({
-    name: 'order_products',
-    joinColumn: { name: 'product_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'order_id', referencedColumnName: 'id' },
-  })
   orders: Order[];
 }
