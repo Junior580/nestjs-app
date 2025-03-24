@@ -32,7 +32,6 @@ export class AuthController {
     status: 401,
     description: 'Unauthorized',
   })
-  @UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@Request() req: FastifyRequest) {
     return req.user;
@@ -95,6 +94,7 @@ export class AuthController {
     description: 'Unauthorized',
   })
   @UseGuards(RefreshAuthGuard)
+  @Public()
   @Post('refresh')
   refreshToken(@Req() req: FastifyRequest) {
     return this.authService.refreshToken(req.user.id);
