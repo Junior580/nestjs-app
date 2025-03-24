@@ -45,7 +45,7 @@ jobs:
       - name: Run Database Migrations
         env:
           DATABASE_URL: postgres://postgres:docker@localhost:5432/postgres_test?schema=public
-        run: npm run typeorm migration:run
+        run: npm run migration:run
 
       - name: Run tests
         env:
