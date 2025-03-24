@@ -1,9 +1,10 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { BcryptjsHashProvider } from '@/shared/infra/providers/hash-provider/bcrypt-hash.provider';
+
 import { OrdersModule } from '../orders/orders.module';
 import { User } from './entities/user.entity';
-import { BcryptjsHashProvider } from './hash-provider/bcrypt-hash.provider';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 

@@ -7,11 +7,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { BcryptjsHashProvider } from '@/shared/infra/providers/hash-provider/bcrypt-hash.provider';
+
 import { CreateUserDto } from './dto/create-user.dto';
 import { ListUserDto } from './dto/list-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { BcryptjsHashProvider } from './hash-provider/bcrypt-hash.provider';
 
 @Injectable()
 export class UsersService {
