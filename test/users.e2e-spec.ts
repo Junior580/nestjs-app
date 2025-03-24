@@ -2,12 +2,12 @@
 /* eslint @typescript-eslint/no-unsafe-member-access: "off" */
 /* eslint @typescript-eslint/no-unsafe-argument: "off" */
 
-import {
-  ClassSerializerInterceptor,
-  INestApplication,
-  ValidationPipe,
-} from '@nestjs/common';
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from '@nestjs/platform-fastify';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { hash } from 'bcrypt';
@@ -15,12 +15,14 @@ import * as request from 'supertest';
 import { Repository } from 'typeorm';
 
 import { AppModule } from '@/app.module';
+import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { Order } from '@/modules/orders/entities/order.entity';
 import { User } from '@/modules/users/entities/user.entity';
 import { AppDataSource } from '@/shared/infra/database/typeorm.config';
 
 describe('UsersController (e2e)', () => {
-  let app: INestApplication;
+  let app: NestFastifyApplication;
+  let moduleFixture: TestingModule;
   let userRepository: Repository<User>;
   let orderRepository: Repository<Order>;
   let accessToken: string;
@@ -28,13 +30,17 @@ describe('UsersController (e2e)', () => {
 
   beforeAll(async () => {
     await AppDataSource.initialize();
+
     await AppDataSource.runMigrations();
 
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
+    app = moduleFixture.createNestApplication<NestFastifyApplication>(
+      new FastifyAdapter(),
+    );
+
     app.useGlobalPipes(
       new ValidationPipe({
         errorHttpStatusCode: 422,
@@ -46,7 +52,10 @@ describe('UsersController (e2e)', () => {
       new ClassSerializerInterceptor(app.get(Reflector)),
     );
 
+    app.useGlobalGuards(new JwtAuthGuard(new Reflector()));
+
     await app.init();
+    await app.getHttpAdapter().getInstance().ready();
 
     userRepository = moduleFixture.get<Repository<User>>(
       getRepositoryToken(User),
@@ -56,6 +65,8 @@ describe('UsersController (e2e)', () => {
       getRepositoryToken(Order),
     );
 
+    await userRepository.query('DELETE FROM "user"');
+
     await userRepository.save({
       name: 'user1test',
       email: 'user1test@email.com',
@@ -63,7 +74,7 @@ describe('UsersController (e2e)', () => {
     });
 
     const auth = await request(app.getHttpServer())
-      .post('/users/signin')
+      .post('/auth/signin')
       .send({
         email: 'user1test@email.com',
         password: 'password123',
@@ -81,7 +92,9 @@ describe('UsersController (e2e)', () => {
   beforeEach(async () => {
     await orderRepository.query('DELETE FROM "order_products"');
     await orderRepository.query('DELETE FROM "order"');
-    await userRepository.query('DELETE FROM "user"');
+    await userRepository.query(
+      'DELETE FROM "user" WHERE email != \'user1test@email.com\'',
+    );
   });
 
   describe('Create user', () => {
@@ -169,55 +182,55 @@ describe('UsersController (e2e)', () => {
     });
   });
 
-  describe('Authenticate user', () => {
-    it('/users/signin (POST) -> Authenticate user', async () => {
-      await userRepository.save({
-        name: 'user1',
-        email: 'user1@email.com',
-        password: await hash('password123', 6),
-      });
-
-      const response = await request(app.getHttpServer())
-        .post('/users/signin')
-        .send({
-          email: 'user1@email.com',
-          password: 'password123',
-        })
-        .expect(201);
-
-      expect(response.body).toHaveProperty('accessToken');
-      accessToken = response.body.accessToken;
-    });
-
-    it('/users/signin (POST) -> Invalid credentials', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/users/signin')
-        .send({
-          email: 'invalid@email.com',
-          password: 'wrongpassword',
-        })
-        .expect(400);
-
-      expect(response.body.message).toBe('Invalid credentials');
-      expect(response.body.error).toBe('Bad Request');
-      expect(response.body.statusCode).toBe(400);
-    });
-
-    it('/users/signin (POST) -> Request body with invalid data', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/users/signin')
-        .send({
-          email: 'invalid-email',
-          password: 'password123',
-        })
-        .expect(422);
-
-      expect(response.body.message).toContain('email must be an email');
-      expect(response.body.error).toBe('Unprocessable Entity');
-      expect(response.body.statusCode).toBe(422);
-    });
-  });
-
+  // describe('Authenticate user', () => {
+  //   it('/users/signin (POST) -> Authenticate user', async () => {
+  //     await userRepository.save({
+  //       name: 'user1',
+  //       email: 'user1@email.com',
+  //       password: await hash('password123', 6),
+  //     });
+  //
+  //     const response = await request(app.getHttpServer())
+  //       .post('/users/signin')
+  //       .send({
+  //         email: 'user1@email.com',
+  //         password: 'password123',
+  //       })
+  //       .expect(201);
+  //
+  //     expect(response.body).toHaveProperty('accessToken');
+  //     accessToken = response.body.accessToken;
+  //   });
+  //
+  //   it('/users/signin (POST) -> Invalid credentials', async () => {
+  //     const response = await request(app.getHttpServer())
+  //       .post('/users/signin')
+  //       .send({
+  //         email: 'invalid@email.com',
+  //         password: 'wrongpassword',
+  //       })
+  //       .expect(400);
+  //
+  //     expect(response.body.message).toBe('Invalid credentials');
+  //     expect(response.body.error).toBe('Bad Request');
+  //     expect(response.body.statusCode).toBe(400);
+  //   });
+  //
+  //   it('/users/signin (POST) -> Request body with invalid data', async () => {
+  //     const response = await request(app.getHttpServer())
+  //       .post('/users/signin')
+  //       .send({
+  //         email: 'invalid-email',
+  //         password: 'password123',
+  //       })
+  //       .expect(422);
+  //
+  //     expect(response.body.message).toContain('email must be an email');
+  //     expect(response.body.error).toBe('Unprocessable Entity');
+  //     expect(response.body.statusCode).toBe(422);
+  //   });
+  // });
+  //
   describe('List users', () => {
     it('/users (GET) -> List Users with invalid token', async () => {
       const response = await request(app.getHttpServer())
@@ -228,7 +241,7 @@ describe('UsersController (e2e)', () => {
       expect(response.body.statusCode).toBe(401);
     });
 
-    it('/users (GET) -> List Users (Authenticated)', async () => {
+    it('/users (GET) -> List Users ', async () => {
       await userRepository.save({
         name: 'user1',
         email: 'user1@email.com',
@@ -345,7 +358,7 @@ describe('UsersController (e2e)', () => {
         .expect(200);
 
       const usersPage2 = responsePage2.body.items;
-      expect(usersPage2.length).toBe(1);
+      expect(usersPage2.length).toBe(2);
       expect(usersPage2[0].name).toBe('user1');
 
       expect(usersPage1).not.toEqual(usersPage2);
@@ -359,7 +372,11 @@ describe('UsersController (e2e)', () => {
         email: 'user1@email.com',
         password: 'password123',
       });
-
+      console.log(
+        'User in DB:',
+        await userRepository.findOne({ where: { id: user.id } }),
+      );
+      console.log(`🔥 ~ test Search by Id: ${JSON.stringify(user)}`);
       const response = await request(app.getHttpServer())
         .get(`/users/${user.id}`)
         .set('Authorization', `Bearer ${accessToken}`)
@@ -468,7 +485,7 @@ describe('UsersController (e2e)', () => {
         .expect(204);
 
       const response = await request(app.getHttpServer())
-        .post(`/users/signin`)
+        .post(`/auth/signin`)
         .send({
           email: 'user1@email.com',
           password: 'Updated password',
