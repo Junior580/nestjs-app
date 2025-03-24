@@ -5,9 +5,6 @@ export class Default1742832870712 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `CREATE TYPE "public"."user_role_enum" AS ENUM ('ADMIN', 'EDITOR', 'USER');`,
-    );
-    await queryRunner.query(
       `CREATE TABLE "product" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "product_name" character varying NOT NULL, "description" character varying, "price" numeric(10,2) NOT NULL, "quantity_in_stock" integer NOT NULL, "imageUrl" character varying, "rating" double precision, CONSTRAINT "UQ_aff16b2dbdb8fa56d29ed91e288" UNIQUE ("product_name"), CONSTRAINT "PK_bebc9158e480b949565b4dc7a82" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
@@ -37,7 +34,6 @@ export class Default1742832870712 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TYPE "public"."user_role_enum"`);
     await queryRunner.query(
       `ALTER TABLE "order_products" DROP CONSTRAINT "FK_2d58e8bd11dc840b39f99824d84"`,
     );
