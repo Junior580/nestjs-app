@@ -2,12 +2,12 @@
 /* eslint @typescript-eslint/no-unsafe-member-access: "off" */
 /* eslint @typescript-eslint/no-unsafe-argument: "off" */
 
-import {
-  ClassSerializerInterceptor,
-  INestApplication,
-  ValidationPipe,
-} from '@nestjs/common';
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from '@nestjs/platform-fastify';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as request from 'supertest';
@@ -19,7 +19,8 @@ import { User } from '@/modules/users/entities/user.entity';
 import { AppDataSource } from '@/shared/infra/database/typeorm.config';
 
 describe('ProductsController (e2e)', () => {
-  let app: INestApplication;
+  let app: NestFastifyApplication;
+  let moduleFixture: TestingModule;
   let userRepository: Repository<User>;
   let productRepository: Repository<Product>;
   let accessToken: string;
@@ -28,11 +29,14 @@ describe('ProductsController (e2e)', () => {
     await AppDataSource.initialize();
     await AppDataSource.runMigrations();
 
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
+    app = moduleFixture.createNestApplication<NestFastifyApplication>(
+      new FastifyAdapter(),
+    );
+
     app.useGlobalPipes(
       new ValidationPipe({
         errorHttpStatusCode: 422,
@@ -45,6 +49,7 @@ describe('ProductsController (e2e)', () => {
     );
 
     await app.init();
+    await app.getHttpAdapter().getInstance().ready();
 
     userRepository = moduleFixture.get<Repository<User>>(
       getRepositoryToken(User),

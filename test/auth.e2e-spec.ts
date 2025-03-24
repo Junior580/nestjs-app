@@ -15,7 +15,6 @@ import * as request from 'supertest';
 import { Repository } from 'typeorm';
 
 import { AppModule } from '@/app.module';
-import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { Order } from '@/modules/orders/entities/order.entity';
 import { User } from '@/modules/users/entities/user.entity';
 import { AppDataSource } from '@/shared/infra/database/typeorm.config';
@@ -52,8 +51,6 @@ describe('AuthController (e2e)', () => {
     app.useGlobalInterceptors(
       new ClassSerializerInterceptor(app.get(Reflector)),
     );
-
-    app.useGlobalGuards(new JwtAuthGuard(new Reflector()));
 
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
