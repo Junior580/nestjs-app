@@ -54,6 +54,8 @@ describe('ProductsController (e2e)', () => {
       getRepositoryToken(Product),
     );
 
+    await userRepository.query('DELETE FROM "user"');
+
     await request(app.getHttpServer())
       .post('/users')
       .send({
@@ -64,7 +66,7 @@ describe('ProductsController (e2e)', () => {
       .expect(201);
 
     const auth = await request(app.getHttpServer())
-      .post('/users/signin')
+      .post('/auth/signin')
       .send({
         email: 'user1test@email.com',
         password: 'password123',
@@ -82,7 +84,9 @@ describe('ProductsController (e2e)', () => {
   beforeEach(async () => {
     await productRepository.query('DELETE FROM "order_products"');
     await productRepository.query('DELETE FROM "product"');
-    await userRepository.query('DELETE FROM "user"');
+    await userRepository.query(
+      'DELETE FROM "user" WHERE email != \'user1test@email.com\'',
+    );
   });
 
   describe('Create Product', () => {

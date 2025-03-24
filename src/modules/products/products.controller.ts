@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 
-import { AuthGuard } from '../auth/guards/auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ListProductDto } from './dto/list-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -20,7 +20,7 @@ import { ProductsService } from './products.service';
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) { }
+  constructor(private readonly productsService: ProductsService) {}
 
   @ApiBearerAuth()
   @ApiResponse({
@@ -61,7 +61,7 @@ export class ProductsController {
     status: 422,
     description: 'Request body with invalid data',
   })
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createProductDto: CreateProductDto) {
     return this.productsService.create(createProductDto);
@@ -102,7 +102,7 @@ export class ProductsController {
     status: 401,
     description: 'Unauthorized',
   })
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll(@Query() listproductDto: ListProductDto) {
     return this.productsService.findAll(listproductDto);
@@ -147,7 +147,7 @@ export class ProductsController {
     status: 401,
     description: 'Unauthorized',
   })
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.productsService.findOne(id);
@@ -166,7 +166,7 @@ export class ProductsController {
     status: 422,
     description: 'Request body with invalid data',
   })
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
@@ -195,7 +195,7 @@ export class ProductsController {
     status: 401,
     description: 'Unauthorized',
   })
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.productsService.remove(id);

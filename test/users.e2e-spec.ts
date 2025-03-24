@@ -372,11 +372,7 @@ describe('UsersController (e2e)', () => {
         email: 'user1@email.com',
         password: 'password123',
       });
-      console.log(
-        'User in DB:',
-        await userRepository.findOne({ where: { id: user.id } }),
-      );
-      console.log(`🔥 ~ test Search by Id: ${JSON.stringify(user)}`);
+
       const response = await request(app.getHttpServer())
         .get(`/users/${user.id}`)
         .set('Authorization', `Bearer ${accessToken}`)

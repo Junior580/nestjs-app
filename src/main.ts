@@ -33,6 +33,7 @@ async function bootstrap() {
   );
 
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+
   const configService = app.get(EnvConfigService);
 
   await app.listen(configService.getAppPort() ?? 3000);

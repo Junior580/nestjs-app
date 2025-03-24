@@ -17,8 +17,7 @@ export class AuthService {
 
   async validateUser(email: string, password: string): Promise<{ id: string }> {
     const user = await this.usersService.findByEmail(email);
-
-    if (!user) throw new UnauthorizedException('User not found!');
+    if (!user) throw new UnauthorizedException('Invalid credentials');
 
     const isPasswordMatch = await compare(password, user.password);
 
@@ -87,11 +86,10 @@ export class AuthService {
 
   private async generateTokens(userId: string) {
     const payload: AuthJwtPayload = { sub: userId };
-
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: this.configService.getJwtSecret(),
-        expiresIn: '60s',
+        expiresIn: '15m',
       }),
       this.jwtService.signAsync(payload, {
         secret: this.configService.getRefreshJwtSecret(),

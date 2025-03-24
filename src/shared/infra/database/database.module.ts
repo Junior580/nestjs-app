@@ -6,4 +6,4 @@ import { dataSourceOptions } from './typeorm.config';
 @Module({
   imports: [TypeOrmModule.forRoot(dataSourceOptions)],
 })
-export class DatabaseModule {}
+export class DatabaseModule { }

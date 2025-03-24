@@ -1,4 +1,5 @@
 import { Global, Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 
@@ -8,6 +9,7 @@ import { EnvConfigService } from '@/shared/infra/env-config/env-config.service';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { RefreshJwtStrategy } from './strategies/refresh.strategy';
@@ -17,6 +19,7 @@ import { RefreshJwtStrategy } from './strategies/refresh.strategy';
   imports: [
     EnvConfigModule,
     UsersModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [EnvConfigModule],
       useFactory: (configService: EnvConfigService) => ({
@@ -26,10 +29,18 @@ import { RefreshJwtStrategy } from './strategies/refresh.strategy';
       }),
       inject: [EnvConfigService],
     }),
-    PassportModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy, RefreshJwtStrategy],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+    RefreshJwtStrategy,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

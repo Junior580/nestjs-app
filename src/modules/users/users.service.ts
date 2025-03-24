@@ -9,7 +9,6 @@ import { Repository } from 'typeorm';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { ListUserDto } from './dto/list-user.dto';
-import { SignInDto } from './dto/signin-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { BcryptjsHashProvider } from './hash-provider/bcrypt-hash.provider';
@@ -47,27 +46,6 @@ export class UsersService {
 
   async findByEmail(email: string) {
     return this.userRepository.findOneBy({ email });
-  }
-
-  async signIn(signInDto: SignInDto) {
-    const { email, password } = signInDto;
-
-    const user = await this.userRepository.findOneBy({ email });
-
-    if (!user) {
-      throw new BadRequestException('Invalid credentials');
-    }
-
-    const hashPasswordMatches = await this.hashProvider.compareHash(
-      password,
-      user.password,
-    );
-
-    if (!hashPasswordMatches) {
-      throw new BadRequestException('Invalid credentials');
-    }
-
-    return user;
   }
 
   async findAll(listUserDto: ListUserDto) {
