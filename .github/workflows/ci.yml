@@ -35,22 +35,12 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Clean database and apply migrations
-        run: |
-          # Clean up existing database
-          echo "Dropping existing database..."
-          docker exec -u postgres $(docker ps -q --filter ancestor=postgres:16.4-alpine3.20) psql -U postgres -c "DROP DATABASE IF EXISTS postgres_test;"
-          echo "Creating new database..."
-          docker exec -u postgres $(docker ps -q --filter ancestor=postgres:16.4-alpine3.20) psql -U postgres -c "CREATE DATABASE postgres_test;"
-          
-          # Run migrations to set up the database schema
-
       - name: Run tests
         env:
           NODE_ENV: test
           PORT: 3000
           JWT_SECRET: 2780d8fc-cd7e-4abc-a4ad-26330cc8a8d7
           REFRESH_JWT_SECRET: 9aca2867-bb8c-4b3f-a270-1b56e6b5f78f
-          DATABASE_URL: postgres://postgres:docker@localhost:5432/postgres_test?schema=public
+          DATABASE_URL: postgres://postgres:docker@localhost:5432/postgres?schema=public
 
         run: npm run test:e2e
