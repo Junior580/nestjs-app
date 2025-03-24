@@ -178,55 +178,6 @@ describe('UsersController (e2e)', () => {
     });
   });
 
-  // describe('Authenticate user', () => {
-  //   it('/users/signin (POST) -> Authenticate user', async () => {
-  //     await userRepository.save({
-  //       name: 'user1',
-  //       email: 'user1@email.com',
-  //       password: await hash('password123', 6),
-  //     });
-  //
-  //     const response = await request(app.getHttpServer())
-  //       .post('/users/signin')
-  //       .send({
-  //         email: 'user1@email.com',
-  //         password: 'password123',
-  //       })
-  //       .expect(201);
-  //
-  //     expect(response.body).toHaveProperty('accessToken');
-  //     accessToken = response.body.accessToken;
-  //   });
-  //
-  //   it('/users/signin (POST) -> Invalid credentials', async () => {
-  //     const response = await request(app.getHttpServer())
-  //       .post('/users/signin')
-  //       .send({
-  //         email: 'invalid@email.com',
-  //         password: 'wrongpassword',
-  //       })
-  //       .expect(400);
-  //
-  //     expect(response.body.message).toBe('Invalid credentials');
-  //     expect(response.body.error).toBe('Bad Request');
-  //     expect(response.body.statusCode).toBe(400);
-  //   });
-  //
-  //   it('/users/signin (POST) -> Request body with invalid data', async () => {
-  //     const response = await request(app.getHttpServer())
-  //       .post('/users/signin')
-  //       .send({
-  //         email: 'invalid-email',
-  //         password: 'password123',
-  //       })
-  //       .expect(422);
-  //
-  //     expect(response.body.message).toContain('email must be an email');
-  //     expect(response.body.error).toBe('Unprocessable Entity');
-  //     expect(response.body.statusCode).toBe(422);
-  //   });
-  // });
-  //
   describe('List users', () => {
     it('/users (GET) -> List Users with invalid token', async () => {
       const response = await request(app.getHttpServer())
@@ -377,6 +328,7 @@ describe('UsersController (e2e)', () => {
       expect(response.body.id).toBe(user.id);
       expect(response.body.name).toBe(user.name);
       expect(response.body.email).toBe(user.email);
+      expect(response.body.role).toBe(user.role);
     });
 
     it('/users/:id (GET) -> Search user by ID not found', async () => {
