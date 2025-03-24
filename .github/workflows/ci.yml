@@ -10,7 +10,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16.4
+        image: postgres:16.6-alpine3.20
         ports:
           - 5432:5432
         env:
