@@ -62,8 +62,6 @@ describe('UsersController (e2e)', () => {
       getRepositoryToken(Order),
     );
 
-    await userRepository.query('DELETE FROM "user"');
-
     await userRepository.save({
       name: 'user1test',
       email: 'user1test@email.com',
@@ -82,6 +80,7 @@ describe('UsersController (e2e)', () => {
   });
 
   afterAll(async () => {
+    await userRepository.query('DELETE FROM "user"');
     await AppDataSource.destroy();
     await app.close();
   });
