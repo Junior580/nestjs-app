@@ -4,9 +4,15 @@ export class Default1742832870712 implements MigrationInterface {
   name = 'Default1742832870712';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `CREATE TYPE "public"."user_role_enum" AS ENUM ('ADMIN', 'EDITOR', 'USER');`,
-    );
+    await queryRunner.query(`
+  DO $$
+  BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role_enum') THEN
+      CREATE TYPE "public"."user_role_enum" AS ENUM ('ADMIN', 'EDITOR', 'USER');
+    END IF;
+  END
+  $$;
+`);
     await queryRunner.query(
       `CREATE TABLE "product" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "product_name" character varying NOT NULL, "description" character varying, "price" numeric(10,2) NOT NULL, "quantity_in_stock" integer NOT NULL, "imageUrl" character varying, "rating" double precision, CONSTRAINT "UQ_aff16b2dbdb8fa56d29ed91e288" UNIQUE ("product_name"), CONSTRAINT "PK_bebc9158e480b949565b4dc7a82" PRIMARY KEY ("id"))`,
     );
