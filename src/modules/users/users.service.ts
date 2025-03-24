@@ -7,12 +7,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { BcryptjsHashProvider } from '@/shared/infra/providers/hash-provider/bcrypt-hash.provider';
+
 import { CreateUserDto } from './dto/create-user.dto';
 import { ListUserDto } from './dto/list-user.dto';
-import { SignInDto } from './dto/signin-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { BcryptjsHashProvider } from './hash-provider/bcrypt-hash.provider';
 
 @Injectable()
 export class UsersService {
@@ -45,25 +45,8 @@ export class UsersService {
     return newUser;
   }
 
-  async signIn(signInDto: SignInDto) {
-    const { email, password } = signInDto;
-
-    const user = await this.userRepository.findOneBy({ email });
-
-    if (!user) {
-      throw new BadRequestException('Invalid credentials');
-    }
-
-    const hashPasswordMatches = await this.hashProvider.compareHash(
-      password,
-      user.password,
-    );
-
-    if (!hashPasswordMatches) {
-      throw new BadRequestException('Invalid credentials');
-    }
-
-    return user;
+  async findByEmail(email: string) {
+    return this.userRepository.findOneBy({ email });
   }
 
   async findAll(listUserDto: ListUserDto) {
@@ -104,6 +87,10 @@ export class UsersService {
     }
 
     return user;
+  }
+
+  async updateHashedRefreshToken(id: string, hashedRefreshToken: string) {
+    return await this.userRepository.update({ id }, { hashedRefreshToken });
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {

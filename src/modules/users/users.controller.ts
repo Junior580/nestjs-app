@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -12,20 +13,16 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 
-import { AuthGuard } from '../auth/auth.guard';
-import { AuthService } from '../auth/auth.service';
+import { Public } from '../auth/decorators/public.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ListUserDto } from './dto/list-user.dto';
-import { SignInDto } from './dto/signin-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(
-    private readonly usersService: UsersService,
-    private readonly authService: AuthService,
-  ) {}
+  constructor(private readonly usersService: UsersService) {}
 
   @ApiResponse({
     status: 201,
@@ -53,41 +50,16 @@ export class UsersController {
     status: 422,
     description: 'Request body with invalid data',
   })
+  @Public()
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
-  @ApiResponse({
-    status: 201,
-    description: 'User created successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        accessToken: {
-          type: 'string',
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid credentials',
-  })
-  @ApiResponse({
-    status: 422,
-    description: 'Request body with invalid data',
-  })
-  @Post('signin')
-  async signin(@Body() signinDto: SignInDto) {
-    const user = await this.usersService.signIn(signinDto);
-    return this.authService.generateJwt(user.id);
-  }
-
   @ApiBearerAuth()
   @ApiResponse({
     status: 200,
-    description: 'user list',
+    description: 'User list',
     schema: {
       type: 'array',
       properties: {
@@ -105,7 +77,6 @@ export class UsersController {
     status: 401,
     description: 'Unauthorized',
   })
-  @UseGuards(AuthGuard)
   @Get()
   findAll(@Query() listUserDto: ListUserDto) {
     return this.usersService.findAll(listUserDto);
@@ -114,7 +85,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiResponse({
     status: 200,
-    description: 'user list',
+    description: 'Get user',
     schema: {
       type: 'object',
       properties: {
@@ -132,7 +103,6 @@ export class UsersController {
     status: 401,
     description: 'Unauthorized',
   })
-  @UseGuards(AuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
@@ -142,20 +112,6 @@ export class UsersController {
   @ApiResponse({
     status: 204,
     description: 'User updated successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        id: {
-          type: 'string',
-        },
-        name: {
-          type: 'string',
-        },
-        email: {
-          type: 'string',
-        },
-      },
-    },
   })
   @ApiResponse({
     status: 401,
@@ -165,7 +121,6 @@ export class UsersController {
     status: 422,
     description: 'Request body with invalid data',
   })
-  @UseGuards(AuthGuard)
   @HttpCode(204)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
@@ -194,7 +149,6 @@ export class UsersController {
     status: 401,
     description: 'Unauthorized',
   })
-  @UseGuards(AuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);

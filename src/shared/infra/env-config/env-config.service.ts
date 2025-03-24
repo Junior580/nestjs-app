@@ -17,6 +17,10 @@ export class EnvConfigService {
     return String(this.configService.get<string>('JWT_SECRET'));
   }
 
+  getRefreshJwtSecret(): string {
+    return String(this.configService.get<string>('REFRESH_JWT_SECRET'));
+  }
+
   getDatabaseUrl(): string {
     return String(this.configService.get<string>('DATABASE_URL'));
   }

@@ -9,7 +9,7 @@ import {
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
-import { EnvConfigService } from './shared/env-config/env-config.service';
+import { EnvConfigService } from './shared/infra/env-config/env-config.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -33,6 +33,7 @@ async function bootstrap() {
   );
 
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+
   const configService = app.get(EnvConfigService);
 
   await app.listen(configService.getAppPort() ?? 3000);
