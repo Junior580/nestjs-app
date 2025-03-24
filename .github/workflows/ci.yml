@@ -35,6 +35,18 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          until pg_isready -h localhost -U postgres; do
+            echo "Waiting for database to be ready..."
+            sleep 2
+          done
+
+      - name: Run Database Migrations
+        env:
+          DATABASE_URL: postgres://postgres:docker@localhost:5432/postgres_test?schema=public
+        run: npm run typeorm migration:run
+
       - name: Run tests
         env:
           NODE_ENV: test
