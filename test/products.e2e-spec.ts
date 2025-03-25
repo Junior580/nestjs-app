@@ -10,6 +10,7 @@ import {
 } from '@nestjs/platform-fastify';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { hash } from 'bcrypt';
 import * as request from 'supertest';
 import { Repository } from 'typeorm';
 
@@ -59,14 +60,11 @@ describe('ProductsController (e2e)', () => {
       getRepositoryToken(Product),
     );
 
-    await request(app.getHttpServer())
-      .post('/users')
-      .send({
-        name: 'user1test',
-        email: 'user1test@email.com',
-        password: 'password123',
-      })
-      .expect(201);
+    await userRepository.save({
+      name: 'user1test',
+      email: 'user1test@email.com',
+      password: await hash('password123', 6),
+    });
 
     const auth = await request(app.getHttpServer())
       .post('/auth/signin')
