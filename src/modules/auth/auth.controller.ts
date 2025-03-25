@@ -4,12 +4,16 @@ import { FastifyRequest } from 'fastify';
 
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
+import { Roles } from './decorators/roles.decorator';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RefreshAuthGuard } from './guards/refresh-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { Role } from './types/current-user';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @ApiResponse({
     status: 201,
@@ -90,6 +94,9 @@ export class AuthController {
     status: 401,
     description: 'Unauthorized',
   })
+  @Roles(Role.USER)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtStrategy)
   @Get('profile')
   getProfile(@Request() req: FastifyRequest) {
     return req.user;
