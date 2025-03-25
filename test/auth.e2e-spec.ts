@@ -146,5 +146,16 @@ describe('AuthController (e2e)', () => {
 
       expect(response.body.message).toBe('Unauthorized');
     });
+
+    it('/auth/refresh (POST) -> Logout', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/signout')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(201);
+
+      const user = await userRepository.findOneBy({ id: userId });
+
+      expect(user?.hashedRefreshToken).toBe(null);
+    });
   });
 });

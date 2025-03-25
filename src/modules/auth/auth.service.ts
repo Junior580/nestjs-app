@@ -15,7 +15,7 @@ export class AuthService {
     private configService: EnvConfigService,
     private usersService: UsersService,
     private hashProvider: BcryptjsHashProvider,
-  ) {}
+  ) { }
 
   async validateUser(email: string, password: string): Promise<{ id: string }> {
     const user = await this.usersService.findByEmail(email);
@@ -88,6 +88,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid Refresh Token');
 
     return { id: userId };
+  }
+
+  async signOut(userId: string) {
+    await this.usersService.updateHashedRefreshToken(userId, null);
   }
 
   private async generateTokens(userId: string) {

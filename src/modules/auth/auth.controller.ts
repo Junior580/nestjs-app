@@ -12,7 +12,7 @@ import { Role } from './types/current-user';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @ApiResponse({
     status: 201,
@@ -99,5 +99,10 @@ export class AuthController {
   @Get('profile')
   getProfile(@Request() req: FastifyRequest) {
     return req.user;
+  }
+
+  @Post('signout')
+  async signOut(@Req() req: FastifyRequest) {
+    await this.authService.signOut(req.user.id);
   }
 }

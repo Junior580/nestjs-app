@@ -20,7 +20,7 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private hashProvider: BcryptjsHashProvider,
-  ) {}
+  ) { }
 
   async create(createUserDto: CreateUserDto) {
     const existingUser = await this.userRepository.findOne({
@@ -89,7 +89,10 @@ export class UsersService {
     return user;
   }
 
-  async updateHashedRefreshToken(id: string, hashedRefreshToken: string) {
+  async updateHashedRefreshToken(
+    id: string,
+    hashedRefreshToken: string | null,
+  ) {
     return await this.userRepository.update({ id }, { hashedRefreshToken });
   }
 
