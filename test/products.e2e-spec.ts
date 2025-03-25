@@ -327,15 +327,6 @@ describe('ProductsController (e2e)', () => {
   });
 
   describe('List products', () => {
-    it('/products (GET) -> List Products with invalid token', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/products')
-        .expect(401);
-
-      expect(response.body.message).toBe('Unauthorized');
-      expect(response.body.statusCode).toBe(401);
-    });
-
     it('/products (GET) -> List Products', async () => {
       await productRepository.save({
         productName: 'product 1',
@@ -357,7 +348,6 @@ describe('ProductsController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .get('/products?page=0&perPage=2&sort=createdAt&sortDir=ASC')
-        .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(200);
 
       expect(response.body.items).toBeInstanceOf(Array);
@@ -394,7 +384,6 @@ describe('ProductsController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .get('/products?page=1&perPage=2&sort=createdAt&sortDir=ASC')
-        .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(200);
 
       const products = response.body.items;
@@ -427,7 +416,6 @@ describe('ProductsController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .get('/products?page=1&perPage=2&sort=createdAt&sortDir=DESC')
-        .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(200);
 
       const products = response.body.items;
@@ -471,7 +459,6 @@ describe('ProductsController (e2e)', () => {
 
       const responsePage1 = await request(app.getHttpServer())
         .get('/products?page=1&perPage=2&sort=createdAt&sortDir=DESC')
-        .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(200);
 
       const productsPage1 = responsePage1.body.items;
@@ -482,7 +469,6 @@ describe('ProductsController (e2e)', () => {
 
       const responsePage2 = await request(app.getHttpServer())
         .get('/products?page=2&perPage=2&sort=createdAt&sortDir=DESC')
-        .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(200);
 
       const productsPage2 = responsePage2.body.items;
@@ -506,7 +492,6 @@ describe('ProductsController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .get(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(200);
 
       expect(response.body.id).toBe(product.id);
@@ -521,21 +506,9 @@ describe('ProductsController (e2e)', () => {
     it('/products/:id (GET) -> Search product by ID not found', async () => {
       const response = await request(app.getHttpServer())
         .get('/products/cebe75a5-f864-4275-b0d6-cec617e92126')
-        .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(404);
 
       expect(response.body.message).toBe('Product not found');
-    });
-
-    it('/products/:id (GET) -> Unauthorized', async () => {
-      const nonExistentProductId = '8b7df35f-5198-46c3-a8fd-d147c06167ac';
-
-      const response = await request(app.getHttpServer())
-        .get(`/products/${nonExistentProductId}`)
-        .expect(401);
-
-      expect(response.body.message).toBe('Unauthorized');
-      expect(response.body.statusCode).toBe(401);
     });
   });
 

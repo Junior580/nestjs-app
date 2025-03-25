@@ -12,8 +12,8 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 
+import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Role } from '../auth/types/current-user';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -106,6 +106,7 @@ export class ProductsController {
     status: 401,
     description: 'Unauthorized',
   })
+  @Public()
   @Get()
   findAll(@Query() listproductDto: ListProductDto) {
     return this.productsService.findAll(listproductDto);
@@ -150,7 +151,7 @@ export class ProductsController {
     status: 401,
     description: 'Unauthorized',
   })
-  @UseGuards(JwtAuthGuard)
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.productsService.findOne(id);
@@ -169,7 +170,6 @@ export class ProductsController {
     status: 422,
     description: 'Request body with invalid data',
   })
-  @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
@@ -198,7 +198,6 @@ export class ProductsController {
     status: 401,
     description: 'Unauthorized',
   })
-  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.productsService.remove(id);
