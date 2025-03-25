@@ -513,7 +513,45 @@ describe('ProductsController (e2e)', () => {
   });
 
   describe('Patch product', () => {
-    it('/products/:id (PATCH) -> Update products', async () => {
+    it('/products/:id (PATCH) -> Update products with Admin role', async () => {
+      const product = await productRepository.save({
+        productName: 'product 1',
+        description: 'description product 1',
+        price: 1499.99,
+        quantityInStock: 45,
+        imageUrl: 'https://example.com/laptop-pro15.jpg',
+        rating: 4.8,
+      });
+
+      const response = await request(app.getHttpServer())
+        .patch(`/products/${product.id}`)
+        .set('Authorization', `Bearer ${accessTokenAdmin}`)
+        .send({ productName: 'Updated product 1' })
+        .expect(204);
+
+      expect(response.body).toEqual({});
+    });
+
+    it('/products/:id (PATCH) -> Update products with Editor role', async () => {
+      const product = await productRepository.save({
+        productName: 'product 1',
+        description: 'description product 1',
+        price: 1499.99,
+        quantityInStock: 45,
+        imageUrl: 'https://example.com/laptop-pro15.jpg',
+        rating: 4.8,
+      });
+
+      const response = await request(app.getHttpServer())
+        .patch(`/products/${product.id}`)
+        .set('Authorization', `Bearer ${accessTokenEditor}`)
+        .send({ productName: 'Updated product 1' })
+        .expect(204);
+
+      expect(response.body).toEqual({});
+    });
+
+    it('/products/:id (PATCH) -> Update products with User role', async () => {
       const product = await productRepository.save({
         productName: 'product 1',
         description: 'description product 1',
@@ -527,9 +565,11 @@ describe('ProductsController (e2e)', () => {
         .patch(`/products/${product.id}`)
         .set('Authorization', `Bearer ${accessTokenUser}`)
         .send({ productName: 'Updated product 1' })
-        .expect(204);
+        .expect(403);
 
-      expect(response.body).toEqual({});
+      expect(response.body.message).toBe('Forbidden resource');
+      expect(response.body.error).toBe('Forbidden');
+      expect(response.body.statusCode).toBe(403);
     });
 
     it('/products/:id (PATCH) -> Unauthorized', async () => {
@@ -556,7 +596,7 @@ describe('ProductsController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .patch(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .set('Authorization', `Bearer ${accessTokenEditor}`)
         .send({
           productName: 'a',
           imageUrl: 'a',
@@ -573,7 +613,7 @@ describe('ProductsController (e2e)', () => {
   });
 
   describe('Delete product', () => {
-    it('/products/:id (DELETE) -> Remove product', async () => {
+    it('/products/:id (DELETE) -> Remove product with Admin role', async () => {
       const product = await productRepository.save({
         productName: 'product 1',
         description: 'description product 1',
@@ -585,13 +625,52 @@ describe('ProductsController (e2e)', () => {
 
       await request(app.getHttpServer())
         .delete(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .set('Authorization', `Bearer ${accessTokenAdmin}`)
         .expect(200);
 
       await request(app.getHttpServer())
         .get(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(404);
+    });
+
+    it('/products/:id (DELETE) -> Remove product with Editor role', async () => {
+      const product = await productRepository.save({
+        productName: 'product 1',
+        description: 'description product 1',
+        price: 1499.99,
+        quantityInStock: 45,
+        imageUrl: 'https://example.com/laptop-pro15.jpg',
+        rating: 4.8,
+      });
+
+      await request(app.getHttpServer())
+        .delete(`/products/${product.id}`)
+        .set('Authorization', `Bearer ${accessTokenEditor}`)
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .get(`/products/${product.id}`)
+        .expect(404);
+    });
+
+    it('/products/:id (DELETE) -> Remove product with User role', async () => {
+      const product = await productRepository.save({
+        productName: 'product 1',
+        description: 'description product 1',
+        price: 1499.99,
+        quantityInStock: 45,
+        imageUrl: 'https://example.com/laptop-pro15.jpg',
+        rating: 4.8,
+      });
+
+      const response = await request(app.getHttpServer())
+        .delete(`/products/${product.id}`)
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(403);
+
+      expect(response.body.message).toBe('Forbidden resource');
+      expect(response.body.error).toBe('Forbidden');
+      expect(response.body.statusCode).toBe(403);
     });
 
     it('/products/:id (DELETE) -> Remove products with invalid token', async () => {
@@ -616,7 +695,7 @@ describe('ProductsController (e2e)', () => {
       const nonExistentUserId = '8b7df35f-5198-46c3-a8fd-d147c06167ac';
       const response = await request(app.getHttpServer())
         .delete(`/products/${nonExistentUserId}`)
-        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .set('Authorization', `Bearer ${accessTokenEditor}`)
         .expect(404);
 
       expect(response.body.message).toBe('Product not found');
