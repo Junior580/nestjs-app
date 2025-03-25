@@ -8,7 +8,6 @@ import { Roles } from './decorators/roles.decorator';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RefreshAuthGuard } from './guards/refresh-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
-import { JwtStrategy } from './strategies/jwt.strategy';
 import { Role } from './types/current-user';
 
 @Controller('auth')
@@ -74,6 +73,7 @@ export class AuthController {
     return this.authService.refreshToken(req.user.id);
   }
 
+  @ApiBearerAuth()
   @ApiResponse({
     status: 200,
     description: 'Auth user',
@@ -96,7 +96,6 @@ export class AuthController {
   })
   @Roles(Role.USER)
   @UseGuards(RolesGuard)
-  @UseGuards(JwtStrategy)
   @Get('profile')
   getProfile(@Request() req: FastifyRequest) {
     return req.user;
