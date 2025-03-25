@@ -15,6 +15,7 @@ import * as request from 'supertest';
 import { Repository } from 'typeorm';
 
 import { AppModule } from '@/app.module';
+import { Role } from '@/modules/auth/types/current-user';
 import { Product } from '@/modules/products/entities/product.entity';
 import { User } from '@/modules/users/entities/user.entity';
 import { AppDataSource } from '@/shared/infra/database/typeorm.config';
@@ -24,7 +25,9 @@ describe('ProductsController (e2e)', () => {
   let moduleFixture: TestingModule;
   let userRepository: Repository<User>;
   let productRepository: Repository<Product>;
-  let accessToken: string;
+  let accessTokenAdmin: string;
+  let accessTokenEditor: string;
+  let accessTokenUser: string;
 
   beforeAll(async () => {
     await AppDataSource.initialize();
@@ -60,21 +63,55 @@ describe('ProductsController (e2e)', () => {
       getRepositoryToken(Product),
     );
 
-    await userRepository.save({
-      name: 'user1test',
-      email: 'user1test@email.com',
-      password: await hash('password123', 6),
-    });
+    await userRepository.save([
+      {
+        name: 'user admin',
+        email: 'admin@email.com',
+        password: await hash('password123', 6),
+        role: Role.ADMIN,
+      },
+      {
+        name: 'user editor',
+        email: 'editor@email.com',
+        password: await hash('password123', 6),
+        role: Role.EDITOR,
+      },
+      {
+        name: 'user',
+        email: 'user@email.com',
+        password: await hash('password123', 6),
+      },
+    ]);
 
-    const auth = await request(app.getHttpServer())
+    const authAdmin = await request(app.getHttpServer())
       .post('/auth/signin')
       .send({
-        email: 'user1test@email.com',
+        email: 'editor@email.com',
         password: 'password123',
       })
       .expect(201);
 
-    accessToken = auth.body.accessToken;
+    accessTokenAdmin = authAdmin.body.accessToken;
+
+    const authEditor = await request(app.getHttpServer())
+      .post('/auth/signin')
+      .send({
+        email: 'editor@email.com',
+        password: 'password123',
+      })
+      .expect(201);
+
+    accessTokenEditor = authEditor.body.accessToken;
+
+    const authUser = await request(app.getHttpServer())
+      .post('/auth/signin')
+      .send({
+        email: 'user@email.com',
+        password: 'password123',
+      })
+      .expect(201);
+
+    accessTokenUser = authUser.body.accessToken;
   });
 
   afterAll(async () => {
@@ -87,12 +124,12 @@ describe('ProductsController (e2e)', () => {
     await productRepository.query('DELETE FROM "order_products"');
     await productRepository.query('DELETE FROM "product"');
     await userRepository.query(
-      'DELETE FROM "user" WHERE email != \'user1test@email.com\'',
+      `DELETE FROM "user" WHERE email NOT IN ('admin@email.com', 'editor@email.com', 'user@email.com')`,
     );
   });
 
   describe('Create Product', () => {
-    it('/product (POST) -> Create product', async () => {
+    it('/product (POST) -> Create product with Admin role', async () => {
       const response = await request(app.getHttpServer())
         .post('/products')
         .send({
@@ -103,7 +140,7 @@ describe('ProductsController (e2e)', () => {
           imageUrl: 'https://example.com/laptop-pro15.jpg',
           rating: 4.8,
         })
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenAdmin}`)
         .expect(201);
 
       expect(response.body).toHaveProperty('id');
@@ -117,6 +154,50 @@ describe('ProductsController (e2e)', () => {
       expect(response.body.rating).toBe(4.8);
     });
 
+    it('/product (POST) -> Create product with Editor role', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/products')
+        .send({
+          productName: 'product 1',
+          description: 'description product 1',
+          price: 1499.99,
+          quantityInStock: 45,
+          imageUrl: 'https://example.com/laptop-pro15.jpg',
+          rating: 4.8,
+        })
+        .set('Authorization', `Bearer ${accessTokenEditor}`)
+        .expect(201);
+
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.productName).toBe('product 1');
+      expect(response.body.description).toBe('description product 1');
+      expect(response.body.price).toBe(1499.99);
+      expect(response.body.quantityInStock).toBe(45);
+      expect(response.body.imageUrl).toBe(
+        'https://example.com/laptop-pro15.jpg',
+      );
+      expect(response.body.rating).toBe(4.8);
+    });
+
+    it('/product (POST) -> Create create product with USER role', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/products')
+        .send({
+          productName: 'product 1',
+          description: 'description product 1',
+          price: 1499.99,
+          quantityInStock: 45,
+          imageUrl: 'https://example.com/laptop-pro15.jpg',
+          rating: 4.8,
+        })
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(403);
+
+      expect(response.body.message).toBe('Forbidden resource');
+      expect(response.body.error).toBe('Forbidden');
+      expect(response.body.statusCode).toBe(403);
+    });
+
     it('/product (POST) -> Create product with existing name', async () => {
       await request(app.getHttpServer())
         .post('/products')
@@ -128,12 +209,12 @@ describe('ProductsController (e2e)', () => {
           imageUrl: 'https://example.com/laptop-pro15.jpg',
           rating: 4.8,
         })
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenEditor}`)
         .expect(201);
 
       const response = await request(app.getHttpServer())
         .post('/products')
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenEditor}`)
         .send({
           productName: 'product 1',
           description: 'description product 1',
@@ -152,7 +233,7 @@ describe('ProductsController (e2e)', () => {
     it('/product (POST) -> Create product with invalid name', async () => {
       const response = await request(app.getHttpServer())
         .post('/products')
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenEditor}`)
         .send({
           productName: 'aaaaa',
           description: 'description product 1',
@@ -173,7 +254,7 @@ describe('ProductsController (e2e)', () => {
     it('/products (POST) -> Create product with negative price', async () => {
       const response = await request(app.getHttpServer())
         .post('/products')
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenEditor}`)
         .send({
           productName: 'Valid Name',
           description: 'Valid description',
@@ -192,7 +273,7 @@ describe('ProductsController (e2e)', () => {
     it('/products (POST) -> Create product with zero quantity in stock', async () => {
       const response = await request(app.getHttpServer())
         .post('/products')
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenEditor}`)
         .send({
           productName: 'Valid Name',
           description: 'Valid description',
@@ -211,7 +292,7 @@ describe('ProductsController (e2e)', () => {
     it('/products (POST) -> Create product with invalid image URL', async () => {
       const response = await request(app.getHttpServer())
         .post('/products')
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenEditor}`)
         .send({
           productName: 'Valid Name',
           description: 'Valid description',
@@ -228,7 +309,7 @@ describe('ProductsController (e2e)', () => {
     it('/products (POST) -> Create product with non-numeric rating', async () => {
       const response = await request(app.getHttpServer())
         .post('/products')
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenEditor}`)
         .send({
           productName: 'Valid Name',
           description: 'Valid description',
@@ -276,7 +357,7 @@ describe('ProductsController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .get('/products?page=0&perPage=2&sort=createdAt&sortDir=ASC')
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(200);
 
       expect(response.body.items).toBeInstanceOf(Array);
@@ -313,7 +394,7 @@ describe('ProductsController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .get('/products?page=1&perPage=2&sort=createdAt&sortDir=ASC')
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(200);
 
       const products = response.body.items;
@@ -346,7 +427,7 @@ describe('ProductsController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .get('/products?page=1&perPage=2&sort=createdAt&sortDir=DESC')
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(200);
 
       const products = response.body.items;
@@ -390,7 +471,7 @@ describe('ProductsController (e2e)', () => {
 
       const responsePage1 = await request(app.getHttpServer())
         .get('/products?page=1&perPage=2&sort=createdAt&sortDir=DESC')
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(200);
 
       const productsPage1 = responsePage1.body.items;
@@ -401,7 +482,7 @@ describe('ProductsController (e2e)', () => {
 
       const responsePage2 = await request(app.getHttpServer())
         .get('/products?page=2&perPage=2&sort=createdAt&sortDir=DESC')
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(200);
 
       const productsPage2 = responsePage2.body.items;
@@ -425,7 +506,7 @@ describe('ProductsController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .get(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(200);
 
       expect(response.body.id).toBe(product.id);
@@ -440,7 +521,7 @@ describe('ProductsController (e2e)', () => {
     it('/products/:id (GET) -> Search product by ID not found', async () => {
       const response = await request(app.getHttpServer())
         .get('/products/cebe75a5-f864-4275-b0d6-cec617e92126')
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(404);
 
       expect(response.body.message).toBe('Product not found');
@@ -471,7 +552,7 @@ describe('ProductsController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .patch(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenUser}`)
         .send({ productName: 'Updated product 1' })
         .expect(204);
 
@@ -502,7 +583,7 @@ describe('ProductsController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .patch(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenUser}`)
         .send({
           productName: 'a',
           imageUrl: 'a',
@@ -531,12 +612,12 @@ describe('ProductsController (e2e)', () => {
 
       await request(app.getHttpServer())
         .delete(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(200);
 
       await request(app.getHttpServer())
         .get(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(404);
     });
 
@@ -562,7 +643,7 @@ describe('ProductsController (e2e)', () => {
       const nonExistentUserId = '8b7df35f-5198-46c3-a8fd-d147c06167ac';
       const response = await request(app.getHttpServer())
         .delete(`/products/${nonExistentUserId}`)
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(404);
 
       expect(response.body.message).toBe('Product not found');

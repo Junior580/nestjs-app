@@ -12,7 +12,10 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 
+import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Role } from '../auth/types/current-user';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ListProductDto } from './dto/list-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -61,7 +64,8 @@ export class ProductsController {
     status: 422,
     description: 'Request body with invalid data',
   })
-  @UseGuards(JwtAuthGuard)
+  @Roles(Role.ADMIN, Role.EDITOR)
+  @UseGuards(RolesGuard)
   @Post()
   create(@Body() createProductDto: CreateProductDto) {
     return this.productsService.create(createProductDto);
@@ -102,7 +106,6 @@ export class ProductsController {
     status: 401,
     description: 'Unauthorized',
   })
-  @UseGuards(JwtAuthGuard)
   @Get()
   findAll(@Query() listproductDto: ListProductDto) {
     return this.productsService.findAll(listproductDto);
