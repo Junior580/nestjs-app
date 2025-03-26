@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { number } from 'joi';
+import { In, Repository } from 'typeorm';
 
 import { Product } from '../products/entities/product.entity';
 import { User } from '../users/entities/user.entity';
@@ -18,49 +19,63 @@ export class OrdersService {
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
   ) { }
-  async create(createOrderDto: CreateOrderDto) {
-    // const { userId, productIds } = createOrderDto;
-    //
-    // const user = await this.usersRepository.findOne({ where: { id: userId } });
-    // if (!user) {
-    //   throw new NotFoundException(`User with ID ${userId} not found`);
-    // }
-    //
-    // const products = await this.productsRepository.findByIds(productIds);
-    // if (products.length === 0) {
-    //   throw new NotFoundException('No valid products found for the order');
-    // }
-    //
-    // const totalPrice = products.reduce(
-    //   (sum, product) => sum + product.price,
-    //   0,
-    // );
-    //
-    // const order = this.ordersRepository.create({
-    //   user,
-    //   products,
-    //   totalPrice,
-    //   status: 'pending',
-    // });
-    //
-    // return this.ordersRepository.save(order);
+  async create(userId: string, createOrderDto: CreateOrderDto) {
+    const { productIds } = createOrderDto;
+
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    const products = await this.productsRepository.findBy({
+      id: In(productIds),
+    });
+    if (products.length === 0) {
+      throw new NotFoundException('No valid products found for the order');
+    }
+
+    const totalPrice = products
+      .reduce((sum, product) => sum + Number(product.price), 0)
+      .toFixed(2);
+
+    const order = this.ordersRepository.create({
+      user: { email: user.email, name: user.name },
+      products,
+      totalPrice: Number(totalPrice),
+      status: 'pending',
+    });
+
+    return this.ordersRepository.save(order);
   }
 
   findAll() {
-    // return this.ordersRepository.find({
-    //   relations: ['user', 'products'],
-    // });
+    return this.ordersRepository.find({
+      relations: ['user', 'products'],
+      select: {
+        user: {
+          email: true,
+          name: true,
+        },
+      },
+    });
   }
 
   async findOne(id: string) {
-    // const order = await this.ordersRepository.findOne({
-    //   where: { id },
-    //   relations: ['user', 'products'],
-    // });
-    // if (!order) {
-    //   throw new NotFoundException(`Order with ID ${id} not found`);
-    // }
-    // return order;
+    const order = await this.ordersRepository.findOne({
+      where: { id },
+      relations: ['user', 'products'],
+      select: {
+        user: {
+          email: true,
+          name: true,
+        },
+      },
+    });
+    if (!order) {
+      throw new NotFoundException(`Order with ID ${id} not found`);
+    }
+    return order;
   }
 
   async update(id: string, updateOrderDto: UpdateOrderDto) {
