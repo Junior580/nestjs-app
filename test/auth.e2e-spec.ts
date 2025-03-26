@@ -11,7 +11,7 @@ import {
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { hash } from 'bcrypt';
-import * as request from 'supertest';
+import request from 'supertest';
 import { Repository } from 'typeorm';
 
 import { AppModule } from '@/app.module';
