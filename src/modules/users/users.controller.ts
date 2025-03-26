@@ -22,7 +22,7 @@ import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @ApiResponse({
     status: 201,
@@ -112,6 +112,10 @@ export class UsersController {
   @ApiResponse({
     status: 204,
     description: 'User updated successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found',
   })
   @ApiResponse({
     status: 401,

@@ -464,6 +464,19 @@ describe('UsersController (e2e)', () => {
       expect(response.body.error).toBe('Unprocessable Entity');
       expect(response.body.statusCode).toBe(422);
     });
+
+    it('/users/:id (PATCH) -> User not found', async () => {
+      const nonExistentUserId = '82ad9504-729d-418a-8c1a-55e80db20899';
+      const response = await request(app.getHttpServer())
+        .patch(`/users/${nonExistentUserId}`)
+        .send({ name: 'Updated User' })
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(404);
+
+      expect(response.body.message).toBe('User not found');
+      expect(response.body.error).toBe('Not Found');
+      expect(response.body.statusCode).toBe(404);
+    });
   });
 
   describe('Delete user', () => {
