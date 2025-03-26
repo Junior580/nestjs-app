@@ -106,12 +106,7 @@ export class UsersService {
         'At least one field must be required for update',
       );
     }
-
-    const user = await this.userRepository.findOne({ where: { id } });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    const user = await this.findOne(id);
 
     if (updateUserDto.email) {
       const emailExists = await this.userRepository.findOneBy({
@@ -134,11 +129,7 @@ export class UsersService {
   }
 
   async remove(id: string) {
-    const user = await this.userRepository.findOne({ where: { id } });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    const user = await this.findOne(id);
 
     await this.userRepository.remove(user);
 
