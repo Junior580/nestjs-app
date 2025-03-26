@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { number } from 'joi';
 import { In, Repository } from 'typeorm';
 
 import { Product } from '../products/entities/product.entity';
@@ -18,7 +17,7 @@ export class OrdersService {
     private readonly productsRepository: Repository<Product>,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-  ) {}
+  ) { }
   async create(userId: string, createOrderDto: CreateOrderDto) {
     const { productIds } = createOrderDto;
 
@@ -37,6 +36,7 @@ export class OrdersService {
     const products = await this.productsRepository.findBy({
       id: In(productIds),
     });
+
     if (products.length === 0) {
       throw new NotFoundException('No valid products found for the order');
     }
@@ -79,7 +79,7 @@ export class OrdersService {
       },
     });
     if (!order) {
-      throw new NotFoundException(`Order with ID ${id} not found`);
+      throw new NotFoundException(`Order not found`);
     }
     return order;
   }

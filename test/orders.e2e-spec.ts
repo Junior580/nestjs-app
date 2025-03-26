@@ -16,6 +16,7 @@ import { Repository } from 'typeorm';
 
 import { AppModule } from '@/app.module';
 import { Role } from '@/modules/auth/types/current-user';
+import { Order } from '@/modules/orders/entities/order.entity';
 import { Product } from '@/modules/products/entities/product.entity';
 import { User } from '@/modules/users/entities/user.entity';
 import { AppDataSource } from '@/shared/infra/database/typeorm.config';
@@ -25,9 +26,12 @@ describe('ProductsController (e2e)', () => {
   let moduleFixture: TestingModule;
   let userRepository: Repository<User>;
   let productRepository: Repository<Product>;
+  let orderRepository: Repository<Order>;
   let accessTokenAdmin: string;
   let accessTokenEditor: string;
   let accessTokenUser: string;
+  let product1: Product;
+  let product2: Product;
 
   beforeAll(async () => {
     await AppDataSource.initialize();
@@ -61,6 +65,10 @@ describe('ProductsController (e2e)', () => {
 
     productRepository = moduleFixture.get<Repository<Product>>(
       getRepositoryToken(Product),
+    );
+
+    orderRepository = moduleFixture.get<Repository<Order>>(
+      getRepositoryToken(Order),
     );
 
     await userRepository.save([
@@ -122,19 +130,107 @@ describe('ProductsController (e2e)', () => {
 
   beforeEach(async () => {
     await productRepository.query('DELETE FROM "order_products"');
+    await productRepository.query('DELETE FROM "order"');
     await productRepository.query('DELETE FROM "product"');
     await userRepository.query(
       `DELETE FROM "user" WHERE email NOT IN ('admin@email.com', 'editor@email.com', 'user@email.com')`,
     );
+    product1 = await productRepository.save({
+      productName: 'product 1',
+      description: 'description product 1',
+      price: 1499.99,
+      quantityInStock: 45,
+      imageUrl: 'https://example.com/laptop-pro15.jpg',
+      rating: 4.8,
+    });
+
+    product2 = await productRepository.save({
+      productName: 'product 2',
+      description: 'description product 2',
+      price: 1499.99,
+      quantityInStock: 45,
+      imageUrl: 'https://example.com/laptop-pro15.jpg',
+      rating: 4.8,
+    });
   });
 
-  describe('Create orders', () => { });
+  describe('Create orders', () => {
+    it('/orders (POST) -> Create order with User role', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/orders')
+        .send({
+          productIds: [`${product1.id}`, `${product2.id}`],
+          status: 'pending',
+        })
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(201);
 
-  describe('List orders', () => { });
+      expect(response.body).toHaveProperty('totalPrice');
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.totalPrice).toBe(product1.price + product2.price);
+      expect(response.body.status).toBe('pending');
+      expect(response.body.user).toStrictEqual({
+        name: 'user',
+        email: 'user@email.com',
+      });
+      expect(Array.isArray(response.body.products)).toBe(true);
+      expect(response.body.products.length).toBe(2);
+    });
 
-  describe('Search orders', () => { });
+    it('/orders (POST) -> Create order with Admin role', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/orders')
+        .send({
+          productIds: [`${product1.id}`, `${product2.id}`],
+          status: 'pending',
+        })
+        .set('Authorization', `Bearer ${accessTokenAdmin}`)
+        .expect(403);
 
-  describe('Patch orders', () => { });
+      expect(response.body.message).toBe('Forbidden resource');
+      expect(response.body.error).toBe('Forbidden');
+      expect(response.body.statusCode).toBe(403);
+    });
 
-  describe('Delete orders', () => { });
+    it('/orders (POST) -> Create order with Editor role', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/orders')
+        .send({
+          productIds: [`${product1.id}`, `${product2.id}`],
+          status: 'pending',
+        })
+        .set('Authorization', `Bearer ${accessTokenEditor}`)
+        .expect(403);
+
+      expect(response.body.message).toBe('Forbidden resource');
+      expect(response.body.error).toBe('Forbidden');
+      expect(response.body.statusCode).toBe(403);
+    });
+
+    it('/orders (POST) -> Create order with invalid product', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/orders')
+        .send({
+          productIds: [`a6a00e33-7ab1-44ee-a3a9-fdafab221a`],
+          status: 'pending',
+        })
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(422);
+
+      expect(response.statusCode).toBe(422);
+      expect(response.body.message).toStrictEqual([
+        'each value in productIds must be a UUID',
+      ]);
+      expect(response.body.error).toBe('Unprocessable Entity');
+      expect(response.body.statusCode).toBe(422);
+    });
+  });
+
+  // describe('List orders', () => { });
+  //
+  // describe('Search orders', () => { });
+  //
+  // describe('Patch orders', () => { });
+  //
+  // describe('Delete orders', () => { });
 });

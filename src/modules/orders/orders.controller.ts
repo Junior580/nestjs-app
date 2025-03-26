@@ -10,6 +10,8 @@ import {
 } from '@nestjs/common';
 import { FastifyRequest } from 'fastify';
 
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../auth/types/current-user';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { OrdersService } from './orders.service';
@@ -18,6 +20,7 @@ import { OrdersService } from './orders.service';
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) { }
 
+  @Roles(Role.USER)
   @Post()
   create(
     @Body() createOrderDto: CreateOrderDto,
