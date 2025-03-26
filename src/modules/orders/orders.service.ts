@@ -18,11 +18,17 @@ export class OrdersService {
     private readonly productsRepository: Repository<Product>,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-  ) { }
+  ) {}
   async create(userId: string, createOrderDto: CreateOrderDto) {
     const { productIds } = createOrderDto;
 
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+      select: {
+        email: true,
+        name: true,
+      },
+    });
 
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
@@ -40,7 +46,7 @@ export class OrdersService {
       .toFixed(2);
 
     const order = this.ordersRepository.create({
-      user: { email: user.email, name: user.name },
+      user,
       products,
       totalPrice: Number(totalPrice),
       status: 'pending',
