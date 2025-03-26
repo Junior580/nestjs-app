@@ -610,6 +610,19 @@ describe('ProductsController (e2e)', () => {
       expect(response.body.error).toBe('Unprocessable Entity');
       expect(response.body.statusCode).toBe(422);
     });
+
+    it('/products/:id (PATCH) -> Product not found', async () => {
+      const nonExistentUserId = '8b7df35f-5198-46c3-a8fd-d147c06167ac';
+      const response = await request(app.getHttpServer())
+        .patch(`/products/${nonExistentUserId}`)
+        .set('Authorization', `Bearer ${accessTokenEditor}`)
+        .send({ productName: 'Updated product 1' })
+        .expect(404);
+
+      expect(response.body.message).toBe('Product not found');
+      expect(response.body.error).toBe('Not Found');
+      expect(response.body.statusCode).toBe(404);
+    });
   });
 
   describe('Delete product', () => {

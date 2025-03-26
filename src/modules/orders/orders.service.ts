@@ -1,27 +1,90 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
+import { Product } from '../products/entities/product.entity';
+import { User } from '../users/entities/user.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { Order } from './entities/order.entity';
 
 @Injectable()
 export class OrdersService {
-  create(createOrderDto: CreateOrderDto) {
-    return 'This action adds a new order';
+  constructor(
+    @InjectRepository(Order)
+    private readonly ordersRepository: Repository<Order>,
+    @InjectRepository(Product)
+    private readonly productsRepository: Repository<Product>,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
+  ) { }
+  async create(createOrderDto: CreateOrderDto) {
+    // const { userId, productIds } = createOrderDto;
+    //
+    // const user = await this.usersRepository.findOne({ where: { id: userId } });
+    // if (!user) {
+    //   throw new NotFoundException(`User with ID ${userId} not found`);
+    // }
+    //
+    // const products = await this.productsRepository.findByIds(productIds);
+    // if (products.length === 0) {
+    //   throw new NotFoundException('No valid products found for the order');
+    // }
+    //
+    // const totalPrice = products.reduce(
+    //   (sum, product) => sum + product.price,
+    //   0,
+    // );
+    //
+    // const order = this.ordersRepository.create({
+    //   user,
+    //   products,
+    //   totalPrice,
+    //   status: 'pending',
+    // });
+    //
+    // return this.ordersRepository.save(order);
   }
 
   findAll() {
-    return `This action returns all orders`;
+    // return this.ordersRepository.find({
+    //   relations: ['user', 'products'],
+    // });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
+  async findOne(id: string) {
+    // const order = await this.ordersRepository.findOne({
+    //   where: { id },
+    //   relations: ['user', 'products'],
+    // });
+    // if (!order) {
+    //   throw new NotFoundException(`Order with ID ${id} not found`);
+    // }
+    // return order;
   }
 
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
+  async update(id: string, updateOrderDto: UpdateOrderDto) {
+    // const order = await this.findOne(id);
+    //
+    // if (updateOrderDto.productIds) {
+    //   const products = await this.productsRepository.findByIds(
+    //     updateOrderDto.productIds,
+    //   );
+    //   if (products.length === 0) {
+    //     throw new NotFoundException('No valid products found for the order');
+    //   }
+    //   order.products = products;
+    // }
+    //
+    // if (updateOrderDto.status) {
+    //   order.status = updateOrderDto.status;
+    // }
+    //
+    // return this.ordersRepository.save(order);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} order`;
+  async remove(id: string) {
+    const order = await this.findOne(id);
+    await this.ordersRepository.remove(order);
   }
 }
