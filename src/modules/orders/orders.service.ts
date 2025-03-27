@@ -30,15 +30,20 @@ export class OrdersService {
     });
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
+      throw new NotFoundException('User not found');
     }
 
-    const products = await this.productsRepository.findBy({
-      id: In(productIds),
-    });
+    const products: Product[] = [];
 
-    if (products.length === 0) {
-      throw new NotFoundException('No valid products found for the order');
+    for (let i = 0; i < productIds.length; i++) {
+      const product = await this.productsRepository
+        .findOneOrFail({
+          where: { id: productIds[i] },
+        })
+        .catch(() => {
+          throw new NotFoundException('Product not found');
+        });
+      products.push(product);
     }
 
     const totalPrice = products
