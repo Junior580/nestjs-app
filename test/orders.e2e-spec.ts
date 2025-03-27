@@ -207,7 +207,7 @@ describe('ProductsController (e2e)', () => {
       expect(response.body.statusCode).toBe(403);
     });
 
-    it('/orders (POST) -> Create order with invalid product', async () => {
+    it('/orders (POST) -> Create order with invalid product id', async () => {
       const response = await request(app.getHttpServer())
         .post('/orders')
         .send({
@@ -223,6 +223,25 @@ describe('ProductsController (e2e)', () => {
       ]);
       expect(response.body.error).toBe('Unprocessable Entity');
       expect(response.body.statusCode).toBe(422);
+    });
+
+    it('/orders (POST) -> Create order with invalid product', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/orders')
+        .send({
+          productIds: [
+            'a6a00e33-7ab1-44ee-a3a9-fdafab22134a',
+            `${product1.id}`,
+          ],
+          status: 'pending',
+        })
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(404);
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body.message).toBe('Product not found');
+      expect(response.body.error).toBe('Not Found');
+      expect(response.body.statusCode).toBe(404);
     });
   });
 
