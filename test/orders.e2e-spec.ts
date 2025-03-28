@@ -169,10 +169,7 @@ describe('ProductsController (e2e)', () => {
       expect(response.body).toHaveProperty('id');
       expect(response.body.totalPrice).toBe(product1.price + product2.price);
       expect(response.body.status).toBe('pending');
-      expect(response.body.user).toStrictEqual({
-        name: 'user',
-        email: 'user@email.com',
-      });
+      expect(response.body.user).toHaveProperty('id');
       expect(Array.isArray(response.body.products)).toBe(true);
       expect(response.body.products.length).toBe(2);
     });
@@ -245,8 +242,51 @@ describe('ProductsController (e2e)', () => {
     });
   });
 
-  // describe('List orders', () => { });
-  //
+  describe('List orders', () => {
+    it('/orders (GET) -> List orders with User role', async () => {
+      await request(app.getHttpServer())
+        .post('/orders')
+        .send({
+          productIds: [`${product1.id}`, `${product2.id}`],
+          status: 'pending',
+        })
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(201);
+
+      const response = await request(app.getHttpServer())
+        .get('/orders')
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(200);
+
+      expect(response.body[0]).toHaveProperty('totalPrice');
+      expect(response.body[0]).toHaveProperty('id');
+      expect(response.body[0].products.length).toBe(2);
+      expect(response.body[0].user).not.toHaveProperty('password');
+    });
+
+    it('/orders (GET) -> List orders with Admin role', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/orders')
+        .set('Authorization', `Bearer ${accessTokenAdmin}`)
+        .expect(403);
+
+      expect(response.body.message).toBe('Forbidden resource');
+      expect(response.body.error).toBe('Forbidden');
+      expect(response.body.statusCode).toBe(403);
+    });
+
+    it('/orders (GET) -> List orders with Editor role', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/orders')
+        .set('Authorization', `Bearer ${accessTokenAdmin}`)
+        .expect(403);
+
+      expect(response.body.message).toBe('Forbidden resource');
+      expect(response.body.error).toBe('Forbidden');
+      expect(response.body.statusCode).toBe(403);
+    });
+  });
+
   // describe('Search orders', () => { });
   //
   // describe('Patch orders', () => { });

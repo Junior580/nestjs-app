@@ -29,11 +29,13 @@ export class OrdersController {
     return this.ordersService.create(req.user.id, createOrderDto);
   }
 
+  @Roles(Role.USER)
   @Get()
   findAll(@Request() req: FastifyRequest) {
     return this.ordersService.findAll(req.user.id);
   }
 
+  @Roles(Role.USER)
   @Get(':id')
   findOne(@Param('id') id: string, @Request() req: FastifyRequest) {
     return this.ordersService.findOne(id, req.user.id);
