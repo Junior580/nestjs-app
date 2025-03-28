@@ -240,6 +240,24 @@ describe('ProductsController (e2e)', () => {
       expect(response.body.error).toBe('Not Found');
       expect(response.body.statusCode).toBe(404);
     });
+
+    it('/orders (POST) -> Create order with invalid product list length', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/orders')
+        .send({
+          productIds: [],
+          status: 'pending',
+        })
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(422);
+
+      expect(response.statusCode).toBe(422);
+      expect(response.body.message).toStrictEqual([
+        'At least one product ID is required',
+      ]);
+      expect(response.body.error).toBe('Unprocessable Entity');
+      expect(response.body.statusCode).toBe(422);
+    });
   });
 
   describe('List orders', () => {
