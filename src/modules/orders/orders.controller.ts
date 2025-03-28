@@ -30,13 +30,13 @@ export class OrdersController {
   }
 
   @Get()
-  findAll() {
-    return this.ordersService.findAll();
+  findAll(@Request() req: FastifyRequest) {
+    return this.ordersService.findAll(req.user.id);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ordersService.findOne(id);
+  findOne(@Param('id') id: string, @Request() req: FastifyRequest) {
+    return this.ordersService.findOne(id, req.user.id);
   }
 
   @Patch(':id')
