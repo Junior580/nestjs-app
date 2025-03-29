@@ -11,7 +11,7 @@ import {
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { hash } from 'bcrypt';
-import * as request from 'supertest';
+import request from 'supertest';
 import { Repository } from 'typeorm';
 
 import { AppModule } from '@/app.module';
@@ -63,8 +63,6 @@ describe('AuthController (e2e)', () => {
       getRepositoryToken(Order),
     );
 
-    await userRepository.query('DELETE FROM "user"');
-
     await userRepository.save({
       name: 'user1test',
       email: 'user1test@email.com',
@@ -85,6 +83,7 @@ describe('AuthController (e2e)', () => {
   });
 
   afterAll(async () => {
+    await userRepository.query('DELETE FROM "user"');
     await AppDataSource.destroy();
     await app.close();
   });
@@ -146,6 +145,17 @@ describe('AuthController (e2e)', () => {
         .expect(401);
 
       expect(response.body.message).toBe('Unauthorized');
+    });
+
+    it('/auth/refresh (POST) -> Logout', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/signout')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(201);
+
+      const user = await userRepository.findOneBy({ id: userId });
+
+      expect(user?.hashedRefreshToken).toBe(null);
     });
   });
 });
