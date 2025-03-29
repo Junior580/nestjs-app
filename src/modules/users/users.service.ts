@@ -20,7 +20,7 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private hashProvider: BcryptjsHashProvider,
-  ) {}
+  ) { }
 
   async create(createUserDto: CreateUserDto) {
     const existingUser = await this.userRepository.findOne({
@@ -89,7 +89,10 @@ export class UsersService {
     return user;
   }
 
-  async updateHashedRefreshToken(id: string, hashedRefreshToken: string) {
+  async updateHashedRefreshToken(
+    id: string,
+    hashedRefreshToken: string | null,
+  ) {
     return await this.userRepository.update({ id }, { hashedRefreshToken });
   }
 
@@ -103,12 +106,7 @@ export class UsersService {
         'At least one field must be required for update',
       );
     }
-
-    const user = await this.userRepository.findOne({ where: { id } });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    const user = await this.findOne(id);
 
     if (updateUserDto.email) {
       const emailExists = await this.userRepository.findOneBy({
@@ -131,11 +129,7 @@ export class UsersService {
   }
 
   async remove(id: string) {
-    const user = await this.userRepository.findOne({ where: { id } });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    const user = await this.findOne(id);
 
     await this.userRepository.remove(user);
 

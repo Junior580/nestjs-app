@@ -11,7 +11,7 @@ import {
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { hash } from 'bcrypt';
-import * as request from 'supertest';
+import request from 'supertest';
 import { Repository } from 'typeorm';
 
 import { AppModule } from '@/app.module';
@@ -62,8 +62,6 @@ describe('UsersController (e2e)', () => {
       getRepositoryToken(Order),
     );
 
-    await userRepository.query('DELETE FROM "user"');
-
     await userRepository.save({
       name: 'user1test',
       email: 'user1test@email.com',
@@ -82,6 +80,7 @@ describe('UsersController (e2e)', () => {
   });
 
   afterAll(async () => {
+    await userRepository.query('DELETE FROM "user"');
     await AppDataSource.destroy();
     await app.close();
   });
@@ -179,55 +178,6 @@ describe('UsersController (e2e)', () => {
     });
   });
 
-  // describe('Authenticate user', () => {
-  //   it('/users/signin (POST) -> Authenticate user', async () => {
-  //     await userRepository.save({
-  //       name: 'user1',
-  //       email: 'user1@email.com',
-  //       password: await hash('password123', 6),
-  //     });
-  //
-  //     const response = await request(app.getHttpServer())
-  //       .post('/users/signin')
-  //       .send({
-  //         email: 'user1@email.com',
-  //         password: 'password123',
-  //       })
-  //       .expect(201);
-  //
-  //     expect(response.body).toHaveProperty('accessToken');
-  //     accessToken = response.body.accessToken;
-  //   });
-  //
-  //   it('/users/signin (POST) -> Invalid credentials', async () => {
-  //     const response = await request(app.getHttpServer())
-  //       .post('/users/signin')
-  //       .send({
-  //         email: 'invalid@email.com',
-  //         password: 'wrongpassword',
-  //       })
-  //       .expect(400);
-  //
-  //     expect(response.body.message).toBe('Invalid credentials');
-  //     expect(response.body.error).toBe('Bad Request');
-  //     expect(response.body.statusCode).toBe(400);
-  //   });
-  //
-  //   it('/users/signin (POST) -> Request body with invalid data', async () => {
-  //     const response = await request(app.getHttpServer())
-  //       .post('/users/signin')
-  //       .send({
-  //         email: 'invalid-email',
-  //         password: 'password123',
-  //       })
-  //       .expect(422);
-  //
-  //     expect(response.body.message).toContain('email must be an email');
-  //     expect(response.body.error).toBe('Unprocessable Entity');
-  //     expect(response.body.statusCode).toBe(422);
-  //   });
-  // });
-  //
   describe('List users', () => {
     it('/users (GET) -> List Users with invalid token', async () => {
       const response = await request(app.getHttpServer())
@@ -378,6 +328,7 @@ describe('UsersController (e2e)', () => {
       expect(response.body.id).toBe(user.id);
       expect(response.body.name).toBe(user.name);
       expect(response.body.email).toBe(user.email);
+      expect(response.body.role).toBe(user.role);
     });
 
     it('/users/:id (GET) -> Search user by ID not found', async () => {
@@ -512,6 +463,19 @@ describe('UsersController (e2e)', () => {
       expect(response.body.message).toContain('email must be an email');
       expect(response.body.error).toBe('Unprocessable Entity');
       expect(response.body.statusCode).toBe(422);
+    });
+
+    it('/users/:id (PATCH) -> User not found', async () => {
+      const nonExistentUserId = '82ad9504-729d-418a-8c1a-55e80db20899';
+      const response = await request(app.getHttpServer())
+        .patch(`/users/${nonExistentUserId}`)
+        .send({ name: 'Updated User' })
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(404);
+
+      expect(response.body.message).toBe('User not found');
+      expect(response.body.error).toBe('Not Found');
+      expect(response.body.statusCode).toBe(404);
     });
   });
 

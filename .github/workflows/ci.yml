@@ -10,7 +10,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16.4-alpine3.20
+        image: postgres:16.4
         ports:
           - 5432:5432
         env:
@@ -35,12 +35,24 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          until pg_isready -h localhost -U postgres; do
+            echo "Waiting for database to be ready..."
+            sleep 2
+          done
+
+      - name: Run Database Migrations
+        env:
+          DATABASE_URL: postgres://postgres:docker@localhost:5432/postgres_test?schema=public
+        run: npm run migration:run
+
       - name: Run tests
         env:
           NODE_ENV: test
           PORT: 3000
           JWT_SECRET: 2780d8fc-cd7e-4abc-a4ad-26330cc8a8d7
           REFRESH_JWT_SECRET: 9aca2867-bb8c-4b3f-a270-1b56e6b5f78f
-          DATABASE_URL: postgres://postgres:docker@localhost:5432/postgres?schema=public
+          DATABASE_URL: postgres://postgres:docker@localhost:5432/postgres_test?schema=public
 
         run: npm run test:e2e

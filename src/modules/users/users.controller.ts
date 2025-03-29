@@ -22,7 +22,7 @@ import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @ApiResponse({
     status: 201,
@@ -114,6 +114,10 @@ export class UsersController {
     description: 'User updated successfully',
   })
   @ApiResponse({
+    status: 404,
+    description: 'User not found',
+  })
+  @ApiResponse({
     status: 401,
     description: 'Unauthorized',
   })
@@ -130,7 +134,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiResponse({
     status: 200,
-    description: 'User updated deleted',
+    description: 'User deleted',
     schema: {
       type: 'object',
       properties: {
