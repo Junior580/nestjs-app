@@ -18,8 +18,10 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('Nestjs Api')
-    .setDescription('Api test')
+    .setTitle('NestJS Api')
+    .setDescription(
+      'A boilerplate API for user authentication and login management using NestJS',
+    )
     .setVersion('1.0')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
