@@ -286,10 +286,10 @@ describe('ProductsController (e2e)', () => {
         .set('Authorization', `Bearer ${accessTokenUser}`)
         .expect(200);
 
-      expect(response.body[0]).toHaveProperty('totalPrice');
-      expect(response.body[0]).toHaveProperty('id');
-      expect(response.body[0].products.length).toBe(2);
-      expect(response.body[0].user).not.toHaveProperty('password');
+      expect(response.body.items[0]).toHaveProperty('totalPrice');
+      expect(response.body.items[0]).toHaveProperty('id');
+      expect(response.body.items[0].products.length).toBe(2);
+      expect(response.body.items[0].user).not.toHaveProperty('password');
     });
 
     it('/orders (GET) -> List orders from another user', async () => {
@@ -307,8 +307,133 @@ describe('ProductsController (e2e)', () => {
         .set('Authorization', `Bearer ${accessTokenUser2}`)
         .expect(200);
 
-      expect(response.body).toStrictEqual([]);
+      expect(response.body).toHaveProperty('total');
+      expect(response.body).toHaveProperty('currentPage');
+      expect(response.body).toHaveProperty('perPage');
+      expect(response.body).toHaveProperty('sort');
+      expect(response.body).toHaveProperty('sortDir');
+      expect(response.body.items).toStrictEqual([]);
       expect(response.statusCode).toBe(200);
+    });
+
+    it('/orders (GET) -> List orders Ordered by CreatedAt ASC', async () => {
+      await request(app.getHttpServer())
+        .post('/orders')
+        .send({
+          productIds: [`${product1.id}`, `${product2.id}`],
+          status: 'pending',
+        })
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(201);
+
+      await new Promise((r) => setTimeout(r, 1000));
+
+      await request(app.getHttpServer())
+        .post('/orders')
+        .send({
+          productIds: [`${product2.id}`, `${product1.id}`],
+          status: 'pending',
+        })
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(201);
+
+      const response = await request(app.getHttpServer())
+        .get('/orders?page=1&perPage=2&sort=createdAt&sortDir=ASC')
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(200);
+
+      const orders = response.body.items;
+      expect(orders.length).toBeGreaterThan(1);
+      expect(new Date(orders[0].createdAt).getTime()).toBeLessThan(
+        new Date(orders[1].createdAt).getTime(),
+      );
+    });
+
+    it('/orders (GET) -> List orders Ordered by CreatedAt DESC', async () => {
+      await request(app.getHttpServer())
+        .post('/orders')
+        .send({
+          productIds: [`${product1.id}`, `${product2.id}`],
+          status: 'pending',
+        })
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(201);
+
+      await new Promise((r) => setTimeout(r, 1000));
+
+      await request(app.getHttpServer())
+        .post('/orders')
+        .send({
+          productIds: [`${product2.id}`, `${product1.id}`],
+          status: 'pending',
+        })
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(201);
+
+      const response = await request(app.getHttpServer())
+        .get('/orders?page=1&perPage=2&sort=createdAt&sortDir=DESC')
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(200);
+
+      const orders = response.body.items;
+      expect(orders.length).toBeGreaterThan(1);
+      expect(new Date(orders[1].createdAt).getTime()).toBeLessThan(
+        new Date(orders[0].createdAt).getTime(),
+      );
+    });
+
+    it('/orders (GET) -> List orders pagination', async () => {
+      await request(app.getHttpServer())
+        .post('/orders')
+        .send({
+          productIds: [`${product1.id}`, `${product2.id}`],
+          status: 'pending',
+        })
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(201);
+
+      await new Promise((r) => setTimeout(r, 1000));
+
+      await request(app.getHttpServer())
+        .post('/orders')
+        .send({
+          productIds: [`${product2.id}`, `${product1.id}`],
+          status: 'pending',
+        })
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(201);
+
+      await new Promise((r) => setTimeout(r, 1000));
+
+      await request(app.getHttpServer())
+        .post('/orders')
+        .send({
+          productIds: [`${product2.id}`, `${product1.id}`],
+          status: 'pending',
+        })
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(201);
+
+      const responsePage1 = await request(app.getHttpServer())
+        .get('/orders?page=1&perPage=2&sort=createdAt&sortDir=DESC')
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(200);
+
+      const ordersPage1 = responsePage1.body.items;
+      expect(ordersPage1.length).toBe(2);
+      expect(new Date(ordersPage1[0].createdAt).getTime()).toBeGreaterThan(
+        new Date(ordersPage1[1].createdAt).getTime(),
+      );
+
+      const responsePage2 = await request(app.getHttpServer())
+        .get('/orders?page=2&perPage=2&sort=createdAt&sortDir=DESC')
+        .set('Authorization', `Bearer ${accessTokenUser}`)
+        .expect(200);
+
+      const ordersPage2 = responsePage2.body.items;
+      expect(ordersPage2.length).toBe(1);
+
+      expect(ordersPage1).not.toEqual(ordersPage2);
     });
 
     it('/orders (GET) -> List orders with Admin role', async () => {

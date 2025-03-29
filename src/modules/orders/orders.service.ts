@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Product } from '../products/entities/product.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { ListOrderDto } from './dto/list-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order } from './entities/order.entity';
 
@@ -59,7 +60,7 @@ export class OrdersService {
     return this.ordersRepository.save(order);
   }
 
-  async findAll(userId: string) {
+  async findAll(userId: string, listOrderDto: ListOrderDto) {
     const user = await this.usersRepository.findOne({
       where: { id: userId },
       select: {
@@ -71,7 +72,20 @@ export class OrdersService {
       throw new NotFoundException('User not found');
     }
 
-    return this.ordersRepository.find({
+    const orderByField = listOrderDto.sort ?? 'createdAt';
+    const orderByDir = listOrderDto.sortDir ?? 'ASC';
+    const page = Number(
+      listOrderDto.page && listOrderDto.page > 0 ? listOrderDto.page : 1,
+    );
+    const perPage = Number(
+      listOrderDto.perPage && listOrderDto.perPage > 0
+        ? listOrderDto.perPage
+        : 10,
+    );
+
+    const count = await this.ordersRepository.count();
+
+    const orders = await this.ordersRepository.find({
       relations: ['user', 'products'],
       where: {
         user: {
@@ -84,7 +98,34 @@ export class OrdersService {
           name: true,
         },
       },
+      order: { [orderByField]: orderByDir },
+      skip: (page - 1) * perPage,
+      take: perPage,
     });
+
+    return {
+      items: orders,
+      total: count,
+      currentPage: page,
+      perPage,
+      sort: orderByField,
+      sortDir: orderByDir,
+    };
+
+    // return this.ordersRepository.find({
+    //   relations: ['user', 'products'],
+    //   where: {
+    //     user: {
+    //       id: user.id,
+    //     },
+    //   },
+    //   select: {
+    //     user: {
+    //       email: true,
+    //       name: true,
+    //     },
+    //   },
+    // });
   }
 
   async findOne(id: string, userId: string) {

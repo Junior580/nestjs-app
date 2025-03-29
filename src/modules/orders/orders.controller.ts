@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Request,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
@@ -14,6 +15,7 @@ import { FastifyRequest } from 'fastify';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/types/current-user';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { ListOrderDto } from './dto/list-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { OrdersService } from './orders.service';
 
@@ -134,8 +136,8 @@ export class OrdersController {
   })
   @Roles(Role.USER)
   @Get()
-  findAll(@Request() req: FastifyRequest) {
-    return this.ordersService.findAll(req.user.id);
+  findAll(@Request() req: FastifyRequest, @Query() listOrderDto: ListOrderDto) {
+    return this.ordersService.findAll(req.user.id, listOrderDto);
   }
 
   @ApiBearerAuth()
