@@ -106,28 +106,38 @@ export class OrdersService {
     return order;
   }
 
-  async update(id: string, updateOrderDto: UpdateOrderDto) {
-    // const order = await this.findOne(id);
-    //
-    // if (updateOrderDto.productIds) {
-    //   const products = await this.productsRepository.findByIds(
-    //     updateOrderDto.productIds,
-    //   );
-    //   if (products.length === 0) {
-    //     throw new NotFoundException('No valid products found for the order');
-    //   }
-    //   order.products = products;
-    // }
-    //
-    // if (updateOrderDto.status) {
-    //   order.status = updateOrderDto.status;
-    // }
-    //
-    // return this.ordersRepository.save(order);
+  async update(id: string, userId: string, updateOrderDto: UpdateOrderDto) {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.ordersRepository.update({ id: id, user: user }, updateOrderDto);
+
+    const order = await this.ordersRepository.findOne({
+      where: {
+        id,
+        user: user,
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    return order;
   }
 
-  async remove(id: string) {
-    const order = await this.findOne(id);
+  async remove(id: string, userId: string) {
+    const order = await this.findOne(id, userId);
     await this.ordersRepository.remove(order);
+
+    return { message: `Order #${id} successfully removed` };
   }
 }

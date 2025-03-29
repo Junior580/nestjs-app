@@ -134,7 +134,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiResponse({
     status: 200,
-    description: 'User updated deleted',
+    description: 'User deleted',
     schema: {
       type: 'object',
       properties: {
