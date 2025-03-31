@@ -17,4 +17,4 @@ import { EnvConfigModule } from './shared/infra/env-config/env-config.module';
     AuthModule,
   ],
 })
-export class AppModule { }
+export class AppModule {}

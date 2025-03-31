@@ -18,7 +18,7 @@ export class OrdersService {
     private readonly productsRepository: Repository<Product>,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-  ) { }
+  ) {}
   async create(userId: string, createOrderDto: CreateOrderDto) {
     const { productIds } = createOrderDto;
 

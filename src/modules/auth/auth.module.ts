@@ -50,4 +50,4 @@ import { RefreshJwtStrategy } from './strategies/refresh.strategy';
   ],
   exports: [AuthService],
 })
-export class AuthModule { }
+export class AuthModule {}
