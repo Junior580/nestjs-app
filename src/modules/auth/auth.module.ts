@@ -5,7 +5,7 @@ import { PassportModule } from '@nestjs/passport';
 
 import { EnvConfigModule } from '@/shared/infra/env-config/env-config.module';
 import { EnvConfigService } from '@/shared/infra/env-config/env-config.service';
-import { BcryptjsHashProvider } from '@/shared/infra/providers/hash-provider/bcrypt-hash.provider';
+import { HashProviderModule } from '@/shared/infra/providers/hash-provider/hash-provider.module';
 
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
@@ -21,6 +21,7 @@ import { RefreshJwtStrategy } from './strategies/refresh.strategy';
   imports: [
     EnvConfigModule,
     UsersModule,
+    HashProviderModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [EnvConfigModule],
@@ -46,8 +47,7 @@ import { RefreshJwtStrategy } from './strategies/refresh.strategy';
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
-    BcryptjsHashProvider,
   ],
   exports: [AuthService],
 })
-export class AuthModule {}
+export class AuthModule { }
