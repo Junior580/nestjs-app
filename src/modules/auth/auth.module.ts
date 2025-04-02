@@ -46,6 +46,5 @@ import { RefreshJwtStrategy } from './strategies/refresh.strategy';
       useClass: RolesGuard,
     },
   ],
-  exports: [AuthService],
 })
-export class AuthModule { }
+export class AuthModule {}
