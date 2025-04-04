@@ -15,6 +15,7 @@ import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/types/current-user';
 import { CreateProductDto } from './dto/create-product.dto';
+import { GetProductDto } from './dto/get-product.dto';
 import { ListProductDto } from './dto/list-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductsService } from './products.service';
@@ -144,8 +145,8 @@ export class ProductsController {
   })
   @Public()
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productsService.findOne(id);
+  findOne(@Param() param: GetProductDto) {
+    return this.productsService.findOne(param.id);
   }
 
   @ApiBearerAuth()
@@ -168,8 +169,11 @@ export class ProductsController {
   @HttpCode(204)
   @Roles(Role.ADMIN, Role.EDITOR)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productsService.update(id, updateProductDto);
+  update(
+    @Param() param: GetProductDto,
+    @Body() updateProductDto: UpdateProductDto,
+  ) {
+    return this.productsService.update(param.id, updateProductDto);
   }
 
   @ApiBearerAuth()
@@ -200,7 +204,7 @@ export class ProductsController {
   })
   @Roles(Role.ADMIN, Role.EDITOR)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productsService.remove(id);
+  remove(@Param() param: GetProductDto) {
+    return this.productsService.remove(param.id);
   }
 }
