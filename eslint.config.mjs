@@ -3,7 +3,7 @@ import eslint from '@eslint/js';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
-import simpleImportSort from "eslint-plugin-simple-import-sort";
+import simpleImportSort from 'eslint-plugin-simple-import-sort';
 
 export default tseslint.config(
   {
@@ -28,8 +28,8 @@ export default tseslint.config(
   },
   {
     plugins: {
-      "simple-import-sort": simpleImportSort,
-    }
+      'simple-import-sort': simpleImportSort,
+    },
   },
   {
     rules: {
@@ -37,6 +37,18 @@ export default tseslint.config(
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
       'simple-import-sort/imports': 'error',
+      'prettier/prettier': [
+        'error',
+        {
+          printWidth: 80,
+          tabWidth: 2,
+          singleQuote: true,
+          trailingComma: 'all',
+          arrowParens: 'always',
+          semi: false,
+          bracketSpacing: true
+        },
+      ],
     },
   },
 );
