@@ -15,13 +15,14 @@ import { FastifyRequest } from 'fastify';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/types/current-user';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { GetOrderDto } from './dto/get-order.dto';
 import { ListOrderDto } from './dto/list-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { OrdersService } from './orders.service';
 
 @Controller('orders')
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) { }
+  constructor(private readonly ordersService: OrdersService) {}
 
   @ApiBearerAuth()
   @ApiResponse({
@@ -190,8 +191,8 @@ export class OrdersController {
   })
   @Roles(Role.USER)
   @Get(':id')
-  findOne(@Param('id') id: string, @Request() req: FastifyRequest) {
-    return this.ordersService.findOne(id, req.user.id);
+  findOne(@Param() param: GetOrderDto, @Request() req: FastifyRequest) {
+    return this.ordersService.findOne(param.id, req.user.id);
   }
 
   @ApiBearerAuth()
@@ -236,11 +237,11 @@ export class OrdersController {
   @Roles(Role.USER)
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param() param: GetOrderDto,
     @Body() updateOrderDto: UpdateOrderDto,
     @Request() req: FastifyRequest,
   ) {
-    return this.ordersService.update(id, req.user.id, updateOrderDto);
+    return this.ordersService.update(param.id, req.user.id, updateOrderDto);
   }
 
   @ApiBearerAuth()
@@ -267,7 +268,7 @@ export class OrdersController {
   })
   @Roles(Role.USER)
   @Delete(':id')
-  remove(@Param('id') id: string, @Request() req: FastifyRequest) {
-    return this.ordersService.remove(id, req.user.id);
+  remove(@Param() param: GetOrderDto, @Request() req: FastifyRequest) {
+    return this.ordersService.remove(param.id, req.user.id);
   }
 }

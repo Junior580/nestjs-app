@@ -3,7 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Product } from '../products/entities/product.entity';
-import { User } from '../users/entities/user.entity';
+import { ProductsService } from '../products/products.service';
+import { UsersService } from '../users/users.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ListOrderDto } from './dto/list-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -14,35 +15,18 @@ export class OrdersService {
   constructor(
     @InjectRepository(Order)
     private readonly ordersRepository: Repository<Order>,
-    @InjectRepository(Product)
-    private readonly productsRepository: Repository<Product>,
-    @InjectRepository(User)
-    private readonly usersRepository: Repository<User>,
-  ) { }
+    private readonly usersService: UsersService,
+    private readonly producstService: ProductsService,
+  ) {}
   async create(userId: string, createOrderDto: CreateOrderDto) {
     const { productIds } = createOrderDto;
 
-    const user = await this.usersRepository.findOne({
-      where: { id: userId },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    const user = await this.usersService.findOne(userId);
 
     const products: Product[] = [];
 
     for (let i = 0; i < productIds.length; i++) {
-      const product = await this.productsRepository
-        .findOneOrFail({
-          where: { id: productIds[i] },
-        })
-        .catch(() => {
-          throw new NotFoundException('Product not found');
-        });
+      const product = await this.producstService.findOne(productIds[i]);
       products.push(product);
     }
 
@@ -61,16 +45,7 @@ export class OrdersService {
   }
 
   async findAll(userId: string, listOrderDto: ListOrderDto) {
-    const user = await this.usersRepository.findOne({
-      where: { id: userId },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    const user = await this.usersService.findOne(userId);
 
     const orderByField = listOrderDto.sort ?? 'createdAt';
     const orderByDir = listOrderDto.sortDir ?? 'ASC';
@@ -111,21 +86,6 @@ export class OrdersService {
       sort: orderByField,
       sortDir: orderByDir,
     };
-
-    // return this.ordersRepository.find({
-    //   relations: ['user', 'products'],
-    //   where: {
-    //     user: {
-    //       id: user.id,
-    //     },
-    //   },
-    //   select: {
-    //     user: {
-    //       email: true,
-    //       name: true,
-    //     },
-    //   },
-    // });
   }
 
   async findOne(id: string, userId: string) {
@@ -148,23 +108,17 @@ export class OrdersService {
   }
 
   async update(id: string, userId: string, updateOrderDto: UpdateOrderDto) {
-    const user = await this.usersRepository.findOne({
-      where: { id: userId },
-      select: {
-        id: true,
-      },
-    });
+    const user = await this.usersService.findOne(userId);
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    await this.ordersRepository.update({ id: id, user: user }, updateOrderDto);
+    await this.ordersRepository.update(
+      { id: id, user: { id: user.id } },
+      updateOrderDto,
+    );
 
     const order = await this.ordersRepository.findOne({
       where: {
         id,
-        user: user,
+        user: { id: user.id },
       },
     });
 

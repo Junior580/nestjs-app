@@ -16,13 +16,14 @@ import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { Public } from '../auth/decorators/public.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
+import { GetUserDto } from './dto/get-user.dto';
 import { ListUserDto } from './dto/list-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @ApiResponse({
     status: 201,
@@ -104,8 +105,8 @@ export class UsersController {
     description: 'Unauthorized',
   })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+  findOne(@Param() param: GetUserDto) {
+    return this.usersService.findOne(param.id);
   }
 
   @ApiBearerAuth()
@@ -127,8 +128,8 @@ export class UsersController {
   })
   @HttpCode(204)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(id, updateUserDto);
+  update(@Param() param: GetUserDto, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(param.id, updateUserDto);
   }
 
   @ApiBearerAuth()
@@ -154,7 +155,7 @@ export class UsersController {
     description: 'Unauthorized',
   })
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+  remove(@Param() param: GetUserDto) {
+    return this.usersService.remove(param.id);
   }
 }
