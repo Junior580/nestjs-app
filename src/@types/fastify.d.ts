@@ -1,9 +1,9 @@
 import 'fastify';
 
-import { Role } from '@/modules/auth/types/current-user';
+import { CurrentUser } from '@/modules/auth/types/current-user';
 
 declare module 'fastify' {
   export interface FastifyRequest {
-    user: { id: string; role: Role };
+    user: CurrentUser;
   }
 }
