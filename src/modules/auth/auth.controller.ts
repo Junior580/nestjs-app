@@ -4,6 +4,7 @@ import { Request } from 'express';
 
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RefreshAuthGuard } from './guards/refresh-auth.guard';
 
@@ -99,5 +100,25 @@ export class AuthController {
   @Post('signout')
   async signOut(@Req() req: Request) {
     await this.authService.signOut(req.user.id);
+  }
+
+  @ApiResponse({
+    status: 201,
+    description: 'Auth user using google for web',
+  })
+  @Public()
+  @UseGuards(GoogleAuthGuard)
+  @Get('google/signin')
+  async googleSignin() { }
+
+  @ApiResponse({
+    status: 201,
+    description: 'Google callback url',
+  })
+  @Public()
+  @UseGuards(GoogleAuthGuard)
+  @Get('google/callback')
+  async googleCallback(@Req() req: Request) {
+    return this.authService.login(req.user.id);
   }
 }
