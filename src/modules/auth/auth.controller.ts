@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Req, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
-import { FastifyRequest } from 'fastify';
+import { Request } from 'express';
 
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
@@ -9,7 +9,7 @@ import { RefreshAuthGuard } from './guards/refresh-auth.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @ApiResponse({
     status: 201,
@@ -36,7 +36,7 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Public()
   @Post('signin')
-  signin(@Request() req: FastifyRequest) {
+  signin(@Req() req: Request) {
     return this.authService.login(req.user.id);
   }
 
@@ -66,7 +66,7 @@ export class AuthController {
   @UseGuards(RefreshAuthGuard)
   @Public()
   @Post('refresh')
-  refreshToken(@Req() req: FastifyRequest) {
+  refreshToken(@Req() req: Request) {
     return this.authService.refreshToken(req.user.id);
   }
 
@@ -92,12 +92,12 @@ export class AuthController {
     description: 'Unauthorized',
   })
   @Get('profile')
-  getProfile(@Request() req: FastifyRequest) {
+  getProfile(@Req() req: Request) {
     return req.user;
   }
 
   @Post('signout')
-  async signOut(@Req() req: FastifyRequest) {
+  async signOut(@Req() req: Request) {
     await this.authService.signOut(req.user.id);
   }
 }

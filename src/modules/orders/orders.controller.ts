@@ -7,10 +7,10 @@ import {
   Patch,
   Post,
   Query,
-  Request,
+  Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
-import { FastifyRequest } from 'fastify';
+import { Request } from 'express';
 
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/types/current-user';
@@ -22,7 +22,7 @@ import { OrdersService } from './orders.service';
 
 @Controller('orders')
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(private readonly ordersService: OrdersService) { }
 
   @ApiBearerAuth()
   @ApiResponse({
@@ -77,10 +77,7 @@ export class OrdersController {
   })
   @Roles(Role.USER)
   @Post()
-  create(
-    @Body() createOrderDto: CreateOrderDto,
-    @Request() req: FastifyRequest,
-  ) {
+  create(@Body() createOrderDto: CreateOrderDto, @Req() req: Request) {
     return this.ordersService.create(req.user.id, createOrderDto);
   }
 
@@ -137,7 +134,7 @@ export class OrdersController {
   })
   @Roles(Role.USER)
   @Get()
-  findAll(@Request() req: FastifyRequest, @Query() listOrderDto: ListOrderDto) {
+  findAll(@Req() req: Request, @Query() listOrderDto: ListOrderDto) {
     return this.ordersService.findAll(req.user.id, listOrderDto);
   }
 
@@ -191,7 +188,7 @@ export class OrdersController {
   })
   @Roles(Role.USER)
   @Get(':id')
-  findOne(@Param() param: GetOrderDto, @Request() req: FastifyRequest) {
+  findOne(@Param() param: GetOrderDto, @Req() req: Request) {
     return this.ordersService.findOne(param.id, req.user.id);
   }
 
@@ -239,7 +236,7 @@ export class OrdersController {
   update(
     @Param() param: GetOrderDto,
     @Body() updateOrderDto: UpdateOrderDto,
-    @Request() req: FastifyRequest,
+    @Req() req: Request,
   ) {
     return this.ordersService.update(param.id, req.user.id, updateOrderDto);
   }
@@ -268,7 +265,7 @@ export class OrdersController {
   })
   @Roles(Role.USER)
   @Delete(':id')
-  remove(@Param() param: GetOrderDto, @Request() req: FastifyRequest) {
+  remove(@Param() param: GetOrderDto, @Req() req: Request) {
     return this.ordersService.remove(param.id, req.user.id);
   }
 }
