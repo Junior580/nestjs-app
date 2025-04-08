@@ -413,6 +413,28 @@ describe('UsersController (e2e)', () => {
       expect(response.body.email).toBe('user1updated@email.com');
     });
 
+    it('/users/:id (PATCH) -> Update user avatar url', async () => {
+      const user = await userRepository.save({
+        name: 'user1',
+        email: 'user1@email.com',
+        password: 'password123',
+      });
+
+      await request(app.getHttpServer())
+        .patch(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ avatarUrl: 'https://example.com/avatar.png' })
+        .expect(204);
+
+      const response = await request(app.getHttpServer())
+        .get(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('avatarUrl');
+      expect(response.body.avatarUrl).toBe('https://example.com/avatar.png');
+    });
+
     it('/users/:id (PATCH) -> Update user password', async () => {
       const user = await userRepository.save({
         name: 'user1',

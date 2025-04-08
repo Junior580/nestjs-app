@@ -31,14 +31,19 @@ export class UsersService {
       throw new ConflictException('Email is already in use');
     }
 
-    const hashPassword = await this.hashProvider.generateHash(
-      createUserDto.password,
-    );
+    let newUser: User;
 
-    const newUser = this.userRepository.create({
-      ...createUserDto,
-      password: hashPassword,
-    });
+    if (createUserDto.password) {
+      const hashPassword = await this.hashProvider.generateHash(
+        createUserDto.password,
+      );
+      newUser = this.userRepository.create({
+        ...createUserDto,
+        password: hashPassword,
+      });
+    } else {
+      newUser = this.userRepository.create(createUserDto);
+    }
 
     await this.userRepository.save(newUser);
 
