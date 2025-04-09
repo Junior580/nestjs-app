@@ -20,7 +20,10 @@ export class AuthService {
 
   async validateUser(email: string, password: string): Promise<{ id: string }> {
     const user = await this.usersService.findByEmail(email);
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+
+    if (!user || !user?.password) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
 
     const isPasswordMatch = await this.hashProvider.compareHash(
       password,
