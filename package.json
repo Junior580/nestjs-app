@@ -20,7 +20,8 @@
     "test:e2e": "dotenv -e .env.test -- jest --runInBand --verbose --config ./test/jest-e2e.json",
     "migration:generate": "dotenv -e .env -- typeorm-ts-node-commonjs -d ./src/shared/infra/database/typeorm.config.ts migration:generate ./src/shared/infra/database/migrations/default",
     "migration:run": "dotenv -e .env -- typeorm-ts-node-commonjs -d ./src/shared/infra/database/typeorm.config.ts migration:run",
-    "migration:revert": "dotenv -e .env -- typeorm-ts-node-commonjs -d ./src/shared/infra/database/typeorm.config.ts migration:revert"
+    "migration:revert": "dotenv -e .env -- typeorm-ts-node-commonjs -d ./src/shared/infra/database/typeorm.config.ts migration:revert",
+    "db:seed": "dotenv -e .env ts-node src/shared/infra/database/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
