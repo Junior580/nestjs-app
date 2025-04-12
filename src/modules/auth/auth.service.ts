@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { BcryptjsHashProvider } from '@/shared/infra/providers/hash-provider/bcrypt-hash.provider';
 
 import { EnvConfigService } from '../../shared/infra/env-config/env-config.service';
+import { CreateUserDto } from '../users/dto/create-user.dto';
 import { UsersService } from '../users/users.service';
 import { AuthJwtPayload } from './types/auth-jwtPayload';
 import { CurrentUser } from './types/current-user';
@@ -15,11 +16,14 @@ export class AuthService {
     private configService: EnvConfigService,
     private usersService: UsersService,
     private hashProvider: BcryptjsHashProvider,
-  ) {}
+  ) { }
 
   async validateUser(email: string, password: string): Promise<{ id: string }> {
     const user = await this.usersService.findByEmail(email);
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+
+    if (!user || !user?.password) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
 
     const isPasswordMatch = await this.hashProvider.compareHash(
       password,
@@ -92,6 +96,12 @@ export class AuthService {
 
   async signOut(userId: string) {
     await this.usersService.updateHashedRefreshToken(userId, null);
+  }
+
+  async validateGoogleUser(googleUser: CreateUserDto) {
+    const user = await this.usersService.findByEmail(googleUser.email);
+    if (user) return user;
+    return await this.usersService.create(googleUser);
   }
 
   private async generateTokens(userId: string) {

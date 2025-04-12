@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class EnvConfigService {
-  constructor(private configService: ConfigService) {}
+  constructor(private configService: ConfigService) { }
 
   getNodeEnv(): string {
     return String(this.configService.get<string>('NODE_ENV'));
@@ -23,5 +23,17 @@ export class EnvConfigService {
 
   getDatabaseUrl(): string {
     return String(this.configService.get<string>('DATABASE_URL'));
+  }
+
+  getGoogleClientId(): string {
+    return String(this.configService.get<string>('GOOGLE_CLIENT_ID'));
+  }
+
+  getGoogleSecret(): string {
+    return String(this.configService.get<string>('GOOGLE_SECRET'));
+  }
+
+  getGoogleCallbackUrl(): string {
+    return String(this.configService.get<string>('GOOGLE_CALLBACK_URL'));
   }
 }

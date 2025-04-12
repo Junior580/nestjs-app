@@ -2,25 +2,28 @@
 /* eslint @typescript-eslint/no-unsafe-member-access: "off" */
 /* eslint @typescript-eslint/no-unsafe-argument: "off" */
 
-import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
+  ClassSerializerInterceptor,
+  ExecutionContext,
+  INestApplication,
+  ValidationPipe,
+} from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { hash } from 'bcrypt';
 import request from 'supertest';
+import { App } from 'supertest/types';
 import { Repository } from 'typeorm';
 
 import { AppModule } from '@/app.module';
+import { GoogleAuthGuard } from '@/modules/auth/guards/google-auth.guard';
 import { Order } from '@/modules/orders/entities/order.entity';
 import { User } from '@/modules/users/entities/user.entity';
 import { AppDataSource } from '@/shared/infra/database/typeorm.config';
 
 describe('AuthController (e2e)', () => {
-  let app: NestFastifyApplication;
+  let app: INestApplication<App>;
   let moduleFixture: TestingModule;
   let userRepository: Repository<User>;
   let orderRepository: Repository<Order>;
@@ -35,11 +38,22 @@ describe('AuthController (e2e)', () => {
 
     moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideGuard(GoogleAuthGuard)
+      .useValue({
+        canActivate: (context: ExecutionContext) => {
+          const request = context.switchToHttp().getRequest();
+          request.user = {
+            id: 'bd7f8fc0-6e76-4bc5-9c61-8d7f8a8ec9a4',
+            email: 'test@example.com',
+            name: 'Test User',
+          };
+          return true;
+        },
+      })
+      .compile();
 
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
+    app = moduleFixture.createNestApplication();
 
     app.useGlobalPipes(
       new ValidationPipe({
@@ -53,7 +67,6 @@ describe('AuthController (e2e)', () => {
     );
 
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
 
     userRepository = moduleFixture.get<Repository<User>>(
       getRepositoryToken(User),
@@ -156,6 +169,16 @@ describe('AuthController (e2e)', () => {
       const user = await userRepository.findOneBy({ id: userId });
 
       expect(user?.hashedRefreshToken).toBe(null);
+    });
+
+    it('/auth/google/signin/web (POST) -> Signin with valid google credentials', async () => {
+      const response = await request(app.getHttpServer()).get(
+        '/auth/google/callback',
+      );
+      expect(response.status).toBe(200);
+      expect(response.body.accessToken).toBeDefined();
+      expect(response.body.refreshToken).toBeDefined();
+      expect(response.body.id).toBe('bd7f8fc0-6e76-4bc5-9c61-8d7f8a8ec9a4');
     });
   });
 });

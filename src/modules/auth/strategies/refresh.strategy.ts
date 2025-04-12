@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { FastifyRequest } from 'fastify';
+import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import { EnvConfigService } from '@/shared/infra/env-config/env-config.service';
@@ -25,7 +25,7 @@ export class RefreshJwtStrategy extends PassportStrategy(
     });
   }
 
-  validate(req: FastifyRequest, payload: AuthJwtPayload) {
+  validate(req: Request, payload: AuthJwtPayload) {
     const authorizationHeader = req.headers['authorization'];
     if (!authorizationHeader) {
       throw new Error('Authorization header missing');
