@@ -16,7 +16,7 @@ export class AuthService {
     private configService: EnvConfigService,
     private usersService: UsersService,
     private hashProvider: BcryptjsHashProvider,
-  ) { }
+  ) {}
 
   async validateUser(email: string, password: string): Promise<{ id: string }> {
     const user = await this.usersService.findByEmail(email);
