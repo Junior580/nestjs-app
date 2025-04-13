@@ -10,7 +10,7 @@ import { RefreshAuthGuard } from './guards/refresh-auth.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @ApiResponse({
     status: 201,
@@ -109,7 +109,7 @@ export class AuthController {
   @Public()
   @UseGuards(GoogleAuthGuard)
   @Get('google/signin')
-  async googleSignin() { }
+  async googleSignin() {}
 
   @ApiResponse({
     status: 201,

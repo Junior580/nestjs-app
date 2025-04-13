@@ -6,4 +6,4 @@ import { BcryptjsHashProvider } from './bcrypt-hash.provider';
   providers: [BcryptjsHashProvider],
   exports: [BcryptjsHashProvider],
 })
-export class HashProviderModule { }
+export class HashProviderModule {}
