@@ -128,7 +128,7 @@ export class UsersService {
         : user.password,
     });
 
-    return this.userRepository.findOne({ where: { id } });
+    return this.findOne(id);
   }
 
   async remove(id: string) {
