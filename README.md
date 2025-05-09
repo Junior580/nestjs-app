@@ -60,6 +60,11 @@ If you have migrations to run, use the command:
 npm run migration:run
 ```
 
+In production, use the following command:
+```bash
+docker exec -it <container id> npx typeorm-ts-node-commonjs -d ./dist/shared/infra/database/typeorm.config.js migration:run
+```
+
 ### Step 5: Run the Application Locally
 To run the application in development mode:
 
