@@ -1,10 +1,22 @@
 services:
   pg:
     image: postgres:16.6-alpine3.20
-    ports:
-     - 5432:5432
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=docker
       - POSTGRES_DB=postgres
+      - postgres_data:/var/lib/postgresql/data
+  app:
+    build: .
+    depends_on:
+      - pg
+    environment:
+      DATABASE_URL: postgres://postgres:docker@pg:5432/postgres
+    ports:
+      - 3000:3000
+    command: ["sh", "-c", "until nc -z pg 5432; do echo waiting for db; sleep 1; done; node dist/main"]
+
+volumes:
+  postgres_data:
+
 

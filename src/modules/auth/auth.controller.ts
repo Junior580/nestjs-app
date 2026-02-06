@@ -1,9 +1,10 @@
 import { Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { Request } from 'express';
 
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
+import { AuthLocalDto } from './dto/auth-local.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RefreshAuthGuard } from './guards/refresh-auth.guard';
@@ -34,6 +35,7 @@ export class AuthController {
     status: 400,
     description: 'Invalid credentials',
   })
+  @ApiBody({ type: AuthLocalDto })
   @UseGuards(LocalAuthGuard)
   @Public()
   @Post('signin')

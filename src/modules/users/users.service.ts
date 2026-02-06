@@ -20,12 +20,10 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private hashProvider: BcryptjsHashProvider,
-  ) {}
+  ) { }
 
   async create(createUserDto: CreateUserDto) {
-    const existingUser = await this.userRepository.findOne({
-      where: { email: createUserDto.email },
-    });
+    const existingUser = await this.findByEmail(createUserDto.email);
 
     if (existingUser) {
       throw new ConflictException('Email is already in use');
@@ -130,7 +128,7 @@ export class UsersService {
         : user.password,
     });
 
-    return this.userRepository.findOne({ where: { id } });
+    return this.findOne(id);
   }
 
   async remove(id: string) {
