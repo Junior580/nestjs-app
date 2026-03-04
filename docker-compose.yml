@@ -1,16 +1,7 @@
 services:
-  pg:
-    image: postgres:16.6-alpine3.20
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=docker
-      - POSTGRES_DB=postgres
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
   app:
     build: .
+    container_name: app
     depends_on:
       - pg
     env_file:
@@ -25,6 +16,16 @@ services:
         "-c",
         "until nc -z pg 5432; do echo waiting for db; sleep 1; done; node dist/main",
       ]
+
+  pg:
+    image: postgres:16.6-alpine3.20
+    container_name: pg
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
 volumes:
   postgres_data:
