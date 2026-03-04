@@ -1,4 +1,38 @@
 services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    command: >
+      tunnel --no-autoupdate run
+      --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - proxy
+    restart: unless-stopped
+
+  traefik:
+    image: traefik:v3.6.9
+    container_name: app-traefik
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--providers.docker.exposedbydefault=false"
+    ports:
+      - "80:80"
+    labels:
+      - "traefik.enable=true"
+
+      - "traefik.http.routers.traefik.rule=Host(`${TRAEFIK_DOMAIN}`)"
+      - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.routers.traefik.service=api@internal"
+
+      - "traefik.http.middlewares.dashboard-auth.basicauth.users=${TRAEFIK_BASIC_AUTH}"
+      - "traefik.http.routers.traefik.middlewares=dashboard-auth"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - proxy
+
   app:
     build: .
     container_name: app
@@ -6,26 +40,34 @@ services:
       - pg
     env_file:
       - .env
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-    ports:
-      - 3000:3000
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`${APP_DOMAIN}`)"
+      - "traefik.http.routers.app.entrypoints=web"
+      - "traefik.http.services.app.loadbalancer.server.port=${PORT}"
     command:
       [
         "sh",
         "-c",
         "until nc -z pg 5432; do echo waiting for db; sleep 1; done; node dist/main",
       ]
+    networks:
+      - proxy
 
   pg:
     image: postgres:16.6-alpine3.20
     container_name: pg
     env_file:
       - .env
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - proxy
 
 volumes:
   postgres_data:
+
+networks:
+  proxy:
