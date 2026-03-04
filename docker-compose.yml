@@ -5,18 +5,26 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=docker
       - POSTGRES_DB=postgres
+    volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
   app:
     build: .
     depends_on:
       - pg
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgres://postgres:docker@pg:5432/postgres
+      DATABASE_URL: ${DATABASE_URL}
     ports:
       - 3000:3000
-    command: ["sh", "-c", "until nc -z pg 5432; do echo waiting for db; sleep 1; done; node dist/main"]
+    command:
+      [
+        "sh",
+        "-c",
+        "until nc -z pg 5432; do echo waiting for db; sleep 1; done; node dist/main",
+      ]
 
 volumes:
   postgres_data:
-
-
