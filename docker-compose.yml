@@ -1,22 +1,87 @@
 services:
-  pg:
-    image: postgres:16.6-alpine3.20
+  watchtower:
+    image: nickfedor/watchtower:1.14.2
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=docker
-      - POSTGRES_DB=postgres
-      - postgres_data:/var/lib/postgresql/data
+      - WATCHTOWER_SCOPE=app-only
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=300
+    networks:
+      - proxy
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    command: >
+      tunnel --no-autoupdate run
+      --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - proxy
+    restart: unless-stopped
+
+  traefik:
+    image: traefik:v3.6.9
+    container_name: app-traefik
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--providers.docker.exposedbydefault=false"
+    ports:
+      - "80:80"
+    labels:
+      - "traefik.enable=true"
+
+      - "traefik.http.routers.traefik.rule=Host(`${TRAEFIK_DOMAIN}`)"
+      - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.routers.traefik.service=api@internal"
+
+      - "traefik.http.middlewares.dashboard-auth.basicauth.users=${TRAEFIK_BASIC_AUTH}"
+      - "traefik.http.routers.traefik.middlewares=dashboard-auth"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - proxy
+
   app:
     build: .
+    container_name: app
     depends_on:
       - pg
-    environment:
-      DATABASE_URL: postgres://postgres:docker@pg:5432/postgres
+    env_file:
+      - .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`${APP_DOMAIN}`)"
+      - "traefik.http.routers.app.entrypoints=web"
+      - "traefik.http.services.app.loadbalancer.server.port=${PORT}"
+      - "com.centurylinklabs.watchtower.scope=app-only"
+    command:
+      [
+        "sh",
+        "-c",
+        "until nc -z pg 5432; do echo waiting for db; sleep 1; done; node dist/main",
+      ]
+    networks:
+      - proxy
+
+  pg:
+    image: postgres:16.6-alpine3.20
+    container_name: pg
+    env_file:
+      - .env
     ports:
-      - 3000:3000
-    command: ["sh", "-c", "until nc -z pg 5432; do echo waiting for db; sleep 1; done; node dist/main"]
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - proxy
 
 volumes:
   postgres_data:
 
-
+networks:
+  proxy:

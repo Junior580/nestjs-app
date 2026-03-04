@@ -18,6 +18,5 @@ FROM node:20-alpine AS runner
 COPY ./package.json package-lock.json /app/
 COPY --from=prod-deps-env /app/node_modules /app/node_modules
 COPY --from=build-env /app/dist /app/dist
-COPY --from=dev-deps-env /app/.env /app/.env
 WORKDIR /app
 CMD ["node", "dist/main"]
