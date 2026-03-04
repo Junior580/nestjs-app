@@ -1,4 +1,17 @@
 services:
+  watchtower:
+    image: nickfedor/watchtower:1.14.2
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_SCOPE=app-only
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=300
+    networks:
+      - proxy
+
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: cloudflared
@@ -45,6 +58,7 @@ services:
       - "traefik.http.routers.app.rule=Host(`${APP_DOMAIN}`)"
       - "traefik.http.routers.app.entrypoints=web"
       - "traefik.http.services.app.loadbalancer.server.port=${PORT}"
+      - "com.centurylinklabs.watchtower.scope=app-only"
     command:
       [
         "sh",
