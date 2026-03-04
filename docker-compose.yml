@@ -47,7 +47,7 @@ services:
       - proxy
 
   app:
-    build: .
+    image: ghcr.io/junior580/app:latest
     container_name: app
     depends_on:
       - pg
