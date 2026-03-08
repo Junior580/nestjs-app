@@ -1,13 +1,13 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
 
-import { BcryptjsHashProvider } from '@/shared/infra/providers/hash-provider/bcrypt-hash.provider';
+import { BcryptjsHashProvider } from "@/shared/infra/providers/hash-provider/bcrypt-hash.provider";
 
-import { EnvConfigService } from '../../shared/infra/env-config/env-config.service';
-import { CreateUserDto } from '../users/dto/create-user.dto';
-import { UsersService } from '../users/users.service';
-import { AuthJwtPayload } from './types/auth-jwtPayload';
-import { CurrentUser } from './types/current-user';
+import { EnvConfigService } from "../../shared/infra/env-config/env-config.service";
+import { CreateUserDto } from "../users/dto/create-user.dto";
+import { UsersService } from "../users/users.service";
+import { AuthJwtPayload } from "./types/auth-jwtPayload";
+import { CurrentUser } from "./types/current-user";
 
 @Injectable()
 export class AuthService {
@@ -16,13 +16,13 @@ export class AuthService {
     private configService: EnvConfigService,
     private usersService: UsersService,
     private hashProvider: BcryptjsHashProvider,
-  ) { }
+  ) {}
 
   async validateUser(email: string, password: string): Promise<{ id: string }> {
     const user = await this.usersService.findByEmail(email);
 
     if (!user || !user?.password) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Invalid credentials");
     }
 
     const isPasswordMatch = await this.hashProvider.compareHash(
@@ -31,7 +31,7 @@ export class AuthService {
     );
 
     if (!isPasswordMatch)
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Invalid credentials");
 
     return { id: user.id };
   }
@@ -51,6 +51,7 @@ export class AuthService {
       id: userId,
       accessToken,
       refreshToken,
+      message: "test",
     };
   }
 
@@ -67,7 +68,7 @@ export class AuthService {
   async validateJwtUser(userId: string): Promise<CurrentUser> {
     const user = await this.usersService.findOne(userId);
 
-    if (!user) throw new UnauthorizedException('User not found!');
+    if (!user) throw new UnauthorizedException("User not found!");
 
     const currentUser: CurrentUser = {
       id: user.id,
@@ -81,7 +82,7 @@ export class AuthService {
     const user = await this.usersService.findOne(userId);
 
     if (!user || !user.hashedRefreshToken)
-      throw new UnauthorizedException('Invalid Refresh Token');
+      throw new UnauthorizedException("Invalid Refresh Token");
 
     const refreshTokenMatches = await this.hashProvider.compareHash(
       refreshToken,
@@ -89,7 +90,7 @@ export class AuthService {
     );
 
     if (!refreshTokenMatches)
-      throw new UnauthorizedException('Invalid Refresh Token');
+      throw new UnauthorizedException("Invalid Refresh Token");
 
     return { id: userId };
   }
@@ -109,11 +110,11 @@ export class AuthService {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: this.configService.getJwtSecret(),
-        expiresIn: '15m',
+        expiresIn: "15m",
       }),
       this.jwtService.signAsync(payload, {
         secret: this.configService.getRefreshJwtSecret(),
-        expiresIn: '7d',
+        expiresIn: "7d",
       }),
     ]);
 
